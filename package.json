@@ -5,6 +5,10 @@
 , unless the new msg has a payload of 'stop' or 'STOP', in which case it will stop the timer. The second output allows you to send an additional payload of a number, string or boolean. If the timer is sto
 pped, the second output will automatically send a payload of 'stopped'.",
 "dependencies": {},
+"repository": {
+    "type": "git",
+    "url": "https://github.com/hamsando/node-red-contrib-stoptimer-varidelay/"
+  },
   "license": "Apache-2.0",
   "keywords": [
     "node-red",
