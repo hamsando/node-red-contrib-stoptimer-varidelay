@@ -1,0 +1,23 @@
+{
+  "name": "node-red-contrib-stoptimer-varidelay",
+  "version": "0.1.1",
+  "description": "Sends the msg through the first output after the set timer duration. If a new msg is received before the timer has ended, it will replace the existing msg and the timer will be restarted
+, unless the new msg has a payload of 'stop' or 'STOP', in which case it will stop the timer. The second output allows you to send an additional payload of a number, string or boolean. If the timer is sto
+pped, the second output will automatically send a payload of 'stopped'.",
+"dependencies": {},
+  "license": "Apache-2.0",
+  "keywords": [
+    "node-red",
+    "timer",
+    "delay",
+    "stoptimer"
+  ],
+  "node-red": {
+    "nodes": {
+      "stoptimer-varidelay": "stoptimer-varidelay/stoptimer-varidelay.js"
+    }
+  },
+  "author": {
+    "name": "putch"
+  }
+}
