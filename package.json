@@ -7,7 +7,7 @@ pped, the second output will automatically send a payload of 'stopped'.",
 "dependencies": {},
 "repository": {
     "type": "git",
-    "url": "https://github.com/hamsando/node-red-contrib-stoptimer-varidelay/"
+    "url": "https://github.com/hamsando/node-red-contrib-stoptimer-varidelay"
   },
   "license": "Apache-2.0",
   "keywords": [
