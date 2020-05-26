@@ -1,5 +1,6 @@
 /**
- * Copyright putch
+ * Modifications copyright (C) 2020 hamsando
+ * Copyright jbardi
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,6 +13,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  **/
 
 module.exports = function(RED) {
@@ -60,6 +62,7 @@ module.exports = function(RED) {
         var delayFactor = 1000;
         this.on("input", function(msg) {
             node.status({});
+            var delayUnits = node.units;
             if(stopped === false || msg._timerpass !== true) {
                 stopped = false;
                 clearTimeout(timeout);
@@ -72,15 +75,27 @@ module.exports = function(RED) {
                     node.send([null, msg2]);
                 } else {
                     msg._timerpass = true;
-                      if (node.units == "Second") {
+                     if (msg.units != null) {
+                       if (msg.units.toLowerCase().includes("second")) {
+                          delayUnits = "Second";
+                       } else if (msg.units.toLowerCase().includes("minute")) {
+                          delayUnits = "Minute";
+                       } else if (msg.units.toLowerCase().includes("hour")) {
+                          delayUnits = "Hour";
+                       } else {
+                          node.warn("Unknown units in message, using node default: " + delayUnits);
+                       }
+                     }
+ 
+                     if (delayUnits == "Second") {
                         delayFactor = 1000;
                       }
 
-                      if (node.units == "Minute") {
+                      if (delayUnits == "Minute") {
                         delayFactor = 1000 * 60;
                       }
 
-                      if (node.units == "Hour") {
+                      if (delayUnits == "Hour") {
                         delayFactor = 1000 * 60 * 60;
                       }
 
@@ -90,7 +105,7 @@ module.exports = function(RED) {
                         actualDelay = node.duration;
                       }
                     //node.status({fill: "green", shape: "dot", text: "running"});
-                    node.status({fill: "green", shape: "dot", text: actualDelay/delayFactor + " " + node.units + "s"});
+                    node.status({fill: "green", shape: "dot", text: actualDelay/delayFactor + " " + delayUnits + "s"});
                     timeout = setTimeout(function() {
                         node.status({});
                         if(stopped === false) {
