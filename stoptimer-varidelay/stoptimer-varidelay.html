@@ -25,10 +25,11 @@
             units: {value:"Second"},
             payloadtype: {value:'num'},
             payloadval: {value:"0"},
-            name: {value:""}
+            name: {value:""},
+            reporting: {value:"none"}
         },
         inputs:1,
-        outputs:2,
+        outputs:3,
         icon: "stoptimer.png",
         label: function() {
             return this.name || this.duration + " " + this.units + " Timer";
@@ -36,7 +37,7 @@
         labelStyle: function() {
             return this.name?"node_label_italic":"";
         },
-        outputLabels: ["Original Payload","Additional Payload"],
+        outputLabels: ["Original Payload","Additional Payload","Time Remaining"],
         oneditprepare: function() {
         $("#node-input-payloadval").typedInput({
         default: 'num',
@@ -56,8 +57,9 @@
         types:['num','env']
             });
 
-
         $("#node-input-duration").typedInput('type', this.durationType);
+
+        $("#node-input-reporting").val(this.reporting);
     }
     });
 </script>
@@ -70,11 +72,19 @@
     </div>
     <div class="form-row">
         <label></label>
-        <select id="node-input-units" style="width:270px !important>
+        <select id="node-input-units">
             <option value="Millisecond">Milliseconds</option>
             <option value="Second">Seconds</option>
             <option value="Minute">Minutes</option>
             <option value="Hour">Hours</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for "node-input-reporting"><i class="fa fa-heartbeat"></i> Reporting</label>
+        <select id="node-input-reporting">
+            <option value="none">Never</option>
+            <option value="every_second">Every Second</option>
+            <option value="last_minute_seconds">Every Minute, Last minute by seconds</option>
         </select>
     </div>
     <div class="form-row">
@@ -89,8 +99,40 @@
 </script>
 
 <script type="text/x-red" data-help-name="stoptimer-varidelay">
-    <p>Sends the <code>msg</code> through the first output after the set timer duration. If a new <code>msg</code> is received before the timer has ended, it will replace the existing <code>msg</code> and the timer will be restarted, unless the new <code>msg</code> has a <code>payload</code> of <code>stop</code> or <code>STOP</code>, in which case it will stop the timer. The second output allows you to send an additional payload of a number, string or boolean. If the timer is stopped, the second output will automatically send a payload of <code>stopped</code>.</p>
-    <p>This is like the built in delay function of node-red, but with the ability to not only restart the timer, but to stop it as well.</p>
-    <p>If the input contains <code>msg.delay</code>, then the delay will be <code>msg.delay</code> units of time, where the units are whatever the units are defaulted to in the node iteself. In the absense of a <code>msg.delay</code>, or a value in <code>msg.delay</code> that can not be converted to an int, then the value configured within the node will be used. If the value of <code>msg.delay</code> is less than 0, then 0 is used.</p>
-    <p>If the input contains <code>msg.units</code>, with a value of "Seconds", "Minutes" or "Hours" then that will over-ride what is defaulted in the node.  In the absense of a <code>msg.units</code>, or an unknown string in <code>msg.units</code> the units configured within the node will be used. In the case of an unknown string, a warning message will appear in the Debug logs. 
+    <p><B>General usage</B><br>
+       Sends the <code>msg</code> through the first output after the set timer duration. If a new <code>msg</code> is received before the timer has ended,
+       it will replace the existing <code>msg</code> and the timer will be restarted, unless the new <code>msg</code> has a <code>payload</code> of
+       <code>stop</code> or <code>STOP</code>, in which case it will stop the timer. The second output allows you to send an additional payload of a number,
+       string or boolean. If the timer is stopped, the second output will automatically send a payload of <code>stopped</code>. The third output will send the
+       time remaining, in HH:MM:SS format as time ticks away. The status below the node as well as the third output can be configured via the <I>Reporting</I>
+       field in the node:
+        <ul>
+          <li>Never(default)</li>
+          <li>Every Second</li>
+          <li>Every Minute, Last minute by seconds</li>
+        </ul>
+        The last option works as follows:
+        <ul>
+          <li>While there is more than 1 minute remaining, the timer will decrement every minute. At the 1 minute point, it will switch to reporting every second.</li>
+          <li>The exception to this rule is if your duration is not a minute increment. In that case, the first update will be for the partial minute, after
+        which it will operate as noted above. (for example: 2.5 minutes will decrement to 2 minutes, then 1 minute, then every second down to zero)</li>
+        </ul>
+    </p>
+    <p>
+      This is like the built in delay function of node-red, but with the ability to not only restart the timer, but to stop it as well.
+    </p>
+    <p><B>Overriding the node via incoming messages</B><br>
+      If the input contains <code>msg.delay</code>, then the delay will be <code>msg.delay</code> units of time, where the units are whatever the units
+      are defaulted to in the node iteself. In the absense of a <code>msg.delay</code>, or a value in <code>msg.delay</code> that can not be converted
+      to an int, the value configured within the node will be used. If the value of <code>msg.delay</code> is less than 0, then 0 is used.
+    </p>
+    <p>
+      If the input contains <code>msg.units</code>, with a value of "Milliseconds", "Seconds", "Minutes" or "Hours" then that will over-ride what is defaulted
+      in the node. In the absense of a <code>msg.units</code>, or an unknown string in <code>msg.units</code> the units configured within the node will be used.
+      In the case of an unknown string, a warning message will appear in the Debug logs.
+    </p>
+    <p><b>Special Note on Milliseconds</b>
+      While you can set Milliseconds, I would not rely on the accuracy for anything critical. For the purposes of the node status and output 3, except in the
+      case where Reporting is set to None, the milliseconds are not displayed or provided on the 3rd output as it wouldn't make sense based on the available
+      reporting rates.
 </script>

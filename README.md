@@ -1,28 +1,64 @@
-Stop Timer for node-red
-----------------------------
+Stop Timer (Variable Delay) for node-red
+----------------------------------------
 
-Sends the `msg` through the first output after the set timer duration. If a new `msg` is received before the timer has ended, it will replace the existing `msg` and the timer will be restarted, unless the new `msg` has a payload of `stop` or `STOP`, in which case it will stop the timer. The second output allows you to send an additional payload of a number, string or boolean. If the timer is stopped, the second output will automatically send a payload of `stopped`.
+__General usage__
+Sends the msg through the first output after the set timer duration. If a new msg is received before the timer has ended, it will replace the existing msg and the timer will be restarted, unless the new msg has a payload of stop or STOP, in which case it will stop the timer. The second output allows you to send an additional payload of a number, string or boolean. If the timer is stopped, the second output will automatically send a payload of stopped. The third output will send the time remaining, in HH:MM:SS format as time ticks away. The status below the node as well as the third output can be configured to update:
+
+* Never(default)
+* Every Second
+* Every Minute, Last minute by seconds
+
+The last option works as follows:
+* While there is more than 1 minute remaining, the timer will decrement every minute. At the 1 minute point, it will switch to reporting every second.
+* The exception to this rule is if your duration is not a minute increment. In that case, the first update will be for the partial minute, after which it will operate as noted above. (for example: 2.5 minutes will decrement to 2 minutes, then 1 minute, then every second down to zero)
 
 This is like the built in delay function of node-red, but with the ability to not only restart the timer, but to stop it as well.
 
-In addition to the ability to use environemtn vars as the delay (added by stoptimer2), this version adds the ability to define the delay based on the contents of the msg.delay field.
+__Overriding the node via incoming messages__
+If the input contains msg.delay, then the delay will be msg.delay units of time, where the units are whatever the units are defaulted to in the node iteself. In the absense of a msg.delay, or a value in msg.delay that can not be converted to an int, the value configured within the node will be used. If the value of msg.delay is less than 0, then 0 is used.
 
-0.0.1 - Initial Release
+If the input contains msg.units, with a value of "Milliseconds", "Seconds", "Minutes" or "Hours" then that will over-ride what is defaulted in the node. In the absense of a msg.units, or an unknown string in msg.units the units configured within the node will be used. In the case of an unknown string, a warning message will appear in the Debug logs.
 
-0.0.2 - Fixed an issue with using the timer in a repeating flow which caused it to either send an additional msg after being stopped, or, in some cases, not allowing a new msg to pass through after the node had been previously stopped.
+__Special Note on Milliseconds__
+While you can set Milliseconds, I would not rely on the accuracy for anything critical. For the purposes of the node status and output 3, except in the 
+case where Reporting is set to None, the milliseconds are not displayed or provided on the 3rd output as it wouldn't make sense based on the available
+reporting rates.
 
-0.0.3 - README.md update
+__Release Notes__
+0.0.1 
+- Initial Release
 
-0.0.4 - Updated icon for less confusion with other nodes
+0.0.2 
+- Fixed an issue with using the timer in a repeating flow which caused it to either send an additional msg after being stopped, or, in some cases, not allowing a new msg to pass through after the node had been previously stopped.
 
-0.0.5 - As per request, I have included a second output. You can set the payload for the second output to a number, string or boolean, however, if the timer is stopped with an incoming msg, the second output will send the payload of "stopped".
+0.0.3 
+- README.md update
 
-0.0.6 - Forgot to update the "info" panel instructions inside of node-red to include the new features.
+0.0.4 
+- Updated icon for less confusion with other nodes
 
-0.0.7 - Clarified the instructions with respect to the what happens to the existing message when a new message arrives.
+0.0.5 
+- As per request, I have included a second output. You can set the payload for the second output to a number, string or boolean, however, if the timer is stopped with an incoming msg, the second output will send the payload of "stopped".
 
-0.1.0 - merc1031: Simple support for setting time from environment to allow parametrized use in subflows
+0.0.6 
+- Forgot to update the "info" panel instructions inside of node-red to include the new features.
 
-0.1.1 - putch: Simple support for msg.delay field to set the delay duration
+0.0.7 
+- Clarified the instructions with respect to the what happens to the existing message when a new message arrives.
 
-0.2.0 - putch: Added support for msg.units field to over-ride the units set in the node.
+0.1.0 
+- merc1031: Simple support for setting time from environment to allow parametrized use in subflows
+
+0.1.1 
+- putch: Simple support for msg.delay field to set the delay duration
+
+0.2.0 
+- putch: Added support for msg.units field to over-ride the units set in the node.
+
+0.3.0 
+- putch: changed the way that time is shown in the node status (from text Seconds/Minutes/Hours to HH:MM:SS)
+- putch: Added support for 3rd output indicating time remaining
+- putch: added option to define the rate of updates. 
+- putch: Cleaned up internal references of node name
+- putch: Fixed milliseconds timer setting 
+- putch: Fixed icon
