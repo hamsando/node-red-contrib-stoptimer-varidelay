@@ -103,7 +103,7 @@
        Sends the <code>msg</code> through the first output after the set timer duration. If a new <code>msg</code> is received before the timer has ended,
        it will replace the existing <code>msg</code> and the timer will be restarted, unless the new <code>msg</code> has a <code>payload</code> of
        <code>stop</code> or <code>STOP</code>, in which case it will stop the timer. The second output allows you to send an additional payload of a number,
-       string or boolean. If the timer is stopped, the second output will automatically send a payload of <code>stopped</code>. The third output will send the
+       string or boolean. If the timer is stopped, the second and third output will automatically send a payload of <code>stopped</code>. The third output will send the
        time remaining, in HH:MM:SS format as time ticks away. The status below the node as well as the third output can be configured via the <I>Reporting</I>
        field in the node:
         <ul>

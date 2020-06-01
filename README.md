@@ -2,7 +2,7 @@ Stop Timer (Variable Delay) for node-red
 ----------------------------------------
 
 __General usage__
-Sends the msg through the first output after the set timer duration. If a new msg is received before the timer has ended, it will replace the existing msg and the timer will be restarted, unless the new msg has a payload of stop or STOP, in which case it will stop the timer. The second output allows you to send an additional payload of a number, string or boolean. If the timer is stopped, the second output will automatically send a payload of stopped. The third output will send the time remaining, in HH:MM:SS format as time ticks away. The status below the node as well as the third output can be configured to update:
+Sends the msg through the first output after the set timer duration. If a new msg is received before the timer has ended, it will replace the existing msg and the timer will be restarted, unless the new msg has a payload of 'stop' or 'STOP', in which case it will stop the timer. The second output allows you to send an additional payload of a number, string or boolean. If the timer is stopped, the second and third output will automatically send a payload of 'stopped'. The third output will send the time remaining, in HH:MM:SS format as time ticks away. The status below the node as well as the third output can be configured to update:
 
 * Never(default)
 * Every Second
@@ -62,3 +62,6 @@ __Release Notes__
 - putch: Cleaned up internal references of node name
 - putch: Fixed milliseconds timer setting 
 - putch: Fixed icon
+
+0.3.1
+- putch: Fixed, 3rd output should output 'stopped' if the stoptimer is sent 'stop' command

@@ -77,7 +77,7 @@ module.exports = function(RED) {
           stopped = true;
           var msg2 = RED.util.cloneMessage(msg);
           msg2.payload = "stopped";
-          node.send([null, msg2, null]);
+          node.send([null, msg2, msg2]);
         } else {
           msg._timerpass = true;
           if (msg.units != null) {
