@@ -64,4 +64,7 @@ __Release Notes__
 - putch: Fixed icon
 
 0.3.1
-- putch: Fixed, 3rd output should output 'stopped' if the stoptimer is sent 'stop' command
+- putch: Fixed,3rd output should output 'stopped' if the stoptimer is sent 'stop' command
+
+0.3.2
+- putch: Fixed time output when time is greater/equal 24 hours

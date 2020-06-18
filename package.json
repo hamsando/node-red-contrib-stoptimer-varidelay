@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-stoptimer-varidelay",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Sends the msg through the 1st output after the timer duration. A new msg received before the timer expires will replace the existing msg and the timer will be restarted, unless the new msg has a payload of 'stop' or 'STOP', which will stop the timer. The 2nd output allows you to send a payload of a number, string or boolean. If the timer is stopped, the second output will automatically send a payload of 'stopped'. A 3rd output provides an optional output, reporting the time remaining.",
   "dependencies": {},
   "repository": {

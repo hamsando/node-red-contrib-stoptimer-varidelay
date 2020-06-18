@@ -129,10 +129,10 @@ module.exports = function(RED) {
 
           var msg3 = "";
           if (reporting == "none") {
-            msg3 = {payload: new Date(actualDelay).toISOString().substr(11, 10)};
+            msg3 = {payload: displayTime(actualDelay)};
             node.status({fill: "green", shape: "dot", text: msg3.payload});
           } else {
-            msg3 = {payload: new Date(actualDelay).toISOString().substr(11, 8)};
+            msg3 = {payload: displayTime(actualDelay)};
             node.status({fill: "green", shape: "dot", text: msg3.payload});
             node.send([null, null, msg3]);
             //report every minute, but during the last minute, every second
@@ -143,7 +143,7 @@ module.exports = function(RED) {
                 //clearInterval(countdown);
                 if ((actualDelay % 60000) != 0) {
                   actualDelay = actualDelay - (actualDelay % 60000);
-                  var msg3 = {payload: new Date(actualDelay).toISOString().substr(11, 8)};
+                  var msg3 = {payload: displayTime(actualDelay)};
                   node.status({fill: "green", shape: "dot", text: msg3.payload});
                   node.send([null, null, msg3]);
                 }
@@ -151,7 +151,7 @@ module.exports = function(RED) {
                 if (actualDelay <= 60000) {
                   countdown = setInterval(function() {
                     actualDelay = actualDelay - 1000;
-                    var msg3 = {payload: new Date(actualDelay).toISOString().substr(11, 8)};
+                    var msg3 = {payload: displayTime(actualDelay)};
                     node.status({fill: "green", shape: "dot", text: msg3.payload});
                     node.send([null, null, msg3]);
                   }, 1000);
@@ -159,7 +159,7 @@ module.exports = function(RED) {
                   countdown = setInterval(function() {
                     if (actualDelay > 60000) {
                       actualDelay = actualDelay - 60000;
-                      var msg3 = {payload: new Date(actualDelay).toISOString().substr(11, 8)};
+                      var msg3 = {payload: displayTime(actualDelay)};
                       node.status({fill: "green", shape: "dot", text: msg3.payload});
                       node.send([null, null, msg3]);
                     }
@@ -170,7 +170,7 @@ module.exports = function(RED) {
                       countdown = null;
                       countdown = setInterval(function() {
                         actualDelay = actualDelay - 1000;
-                        var msg3 = {payload: new Date(actualDelay).toISOString().substr(11, 8)};
+                        var msg3 = {payload: displayTime(actualDelay)};
                         node.status({fill: "green", shape: "dot", text: msg3.payload});
                         node.send([null, null, msg3]);
                       }, 1000);
@@ -183,7 +183,7 @@ module.exports = function(RED) {
               //Update every second, always
               countdown = setInterval(function() {
                 actualDelay = actualDelay - 1000;
-                var msg3 = {payload: new Date(actualDelay).toISOString().substr(11, 8)};
+                var msg3 = {payload: displayTime(actualDelay)};
                 node.status({fill: "green", shape: "dot", text: msg3.payload});
                 node.send([null, null, msg3]);
               }, 1000);
@@ -200,6 +200,23 @@ module.exports = function(RED) {
       }
       node.status({});
     });
+  }
+
+  function displayTime(actualDelay) {
+    var aD = actualDelay;
+    var timeToDisplay = "";
+    var hours,minutes,seconds;
+    if(actualDelay < 86400000) {
+      timeToDisplay = new Date(actualDelay).toISOString().substr(11, 8);
+    } else {
+      actualDelay = actualDelay / 1000;
+      hours = String(Math.floor(actualDelay / 3600)).padStart(2,"0");
+      actualDelay %= 3600;
+      minutes = String(Math.floor(actualDelay / 60)).padStart(2,"0");
+      seconds = String(actualDelay % 60).padStart(2,"0");
+      timeToDisplay = hours+":"+minutes+":"+seconds;
+    }
+    return timeToDisplay;
   }
   RED.nodes.registerType("stoptimer-varidelay", StopTimerVariDelay);
 }
