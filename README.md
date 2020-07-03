@@ -79,3 +79,7 @@ __Release Notes__
 - putch: Optimized code which displays the countdown 
 - putch: Fixed missing 'Units' label in node config screen.
 - putch: Added stoptime countdown persistance across Deploy/Restart
+
+0.4.1
+-putch: Changed location of saved persistent data
+-putch: Remove persistent data for node if node is deleted

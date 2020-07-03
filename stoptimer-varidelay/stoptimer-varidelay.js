@@ -58,7 +58,7 @@ module.exports = function(RED) {
     // Read the state from a perisistent file
   	if (this.persist == true) {
   	  try {
-  		  if (fs.existsSync("states/" + n.id.toString())) {
+  		  if (fs.existsSync("stvd-timers/" + n.id.toString())) {
           var savedState = JSON.parse(readState(fs,n));
           var targetMS = (new Date(savedState.time.toString())).getTime();
           var nowMS = (new Date).getTime();
@@ -224,7 +224,7 @@ module.exports = function(RED) {
       }
     });
 
-    this.on("close", function() {
+    this.on("close", function(removed, done) {
       if (timeout) {
         clearTimeout(timeout);
       }
@@ -237,6 +237,10 @@ module.exports = function(RED) {
         clearTimeout(miniTimeout);
       }
       node.status({});
+      if (removed) {
+        deleteState(fs, node);
+      }
+      done();
     });
   }
 
@@ -258,9 +262,9 @@ module.exports = function(RED) {
   function writeState(fs, node, msg, delay) {
     if (node.persist == true) {
   		try {
-  			if (!fs.existsSync("states")) fs.mkdirSync("states");
+  			if (!fs.existsSync("stvd-timers")) fs.mkdirSync("stvd-timers");
         var target = (new Date((new Date().getTime() + delay))).toISOString();
-  			fs.writeFileSync("states/" + node.id.toString(), "{\"reporting\":\"" + node.reporting + "\",\"time\":\"" + target + "\", \"origmsg\":" + JSON.stringify(msg) + "}");
+  			fs.writeFileSync("stvd-timers/" + node.id.toString(), "{\"reporting\":\"" + node.reporting + "\",\"time\":\"" + target + "\", \"origmsg\":" + JSON.stringify(msg) + "}");
   		} catch (error) {
         node.error("Error writing persistent file for stoptimer-varidelay node " + node.id.toString());
   			node.error(error.toString());
@@ -271,7 +275,7 @@ module.exports = function(RED) {
   function readState(fs, node) {
     var retVal = -1;
 		try {
-			var contents = fs.readFileSync("states/" + node.id.toString()).toString();
+			var contents = fs.readFileSync("stvd-timers/" + node.id.toString()).toString();
 			if (typeof contents !== 'undefined') {
 				retVal = contents;
 			}
@@ -284,8 +288,8 @@ module.exports = function(RED) {
 
   function deleteState(fs, node) {
     try {
-      if (fs.existsSync("states/" + node.id.toString())) {
-        fs.unlinkSync("states/" + node.id.toString());
+      if (fs.existsSync("stvd-timers/" + node.id.toString())) {
+        fs.unlinkSync("stvd-timers/" + node.id.toString());
       }
     } catch (error) {
       node.error("Error deleting persistent file for stoptimer-varidelay node " + node.id.toString());
