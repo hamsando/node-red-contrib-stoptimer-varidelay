@@ -20,6 +20,7 @@ module.exports = function(RED) {
   "use strict";
   function StopTimerVariDelay(n) {
     RED.nodes.createNode(this, n);
+    var fs = require('fs');
 
     this.units = n.units || "Second";
     this.durationType = n.durationType;
@@ -27,6 +28,7 @@ module.exports = function(RED) {
     this.payloadval = n.payloadval || "0";
     this.payloadtype = n.payloadtype || "num";
     this.reporting = n.reporting || "None";
+    this.persist = n.persist || false;
 
     if (this.duration <= 0) {
         this.duration = 0;
@@ -53,6 +55,33 @@ module.exports = function(RED) {
       this.payloadval = String(this.payloadval);
     }
 
+    // Read the state from a perisistent file
+  	if (this.persist == true) {
+  	  try {
+  		  if (fs.existsSync("states/" + n.id.toString())) {
+          var savedState = JSON.parse(readState(fs,n));
+          var targetMS = (new Date(savedState.time.toString())).getTime();
+          var nowMS = (new Date).getTime();
+          this.reporting = savedState.reporting.toString();
+
+          if ((targetMS-nowMS) <= 3000) {
+            targetMS = (Math.floor((Math.random() * 5) + 3)*1000);
+          } else {
+            targetMS = (Math.round((targetMS - nowMS)/1000))*1000;
+          }
+
+          savedState.origmsg.units = "millisecond";
+          savedState.origmsg.delay = targetMS;
+          this.emit("input", savedState.origmsg);
+  			}
+  		} catch (error) {
+        n.error("Error processing persistent file data for stoptimer-varidelay node " + n.id.toString());
+        n.error(error.toString());
+  		}
+  	} else {
+      deleteState(fs, n);
+    }
+
     var node = this;
     var timeout = null;
     var miniTimeout = null;
@@ -61,6 +90,7 @@ module.exports = function(RED) {
     var actualDelay = 0;
     var delayFactor = 1000;
     var reporting = "none";
+
     this.on("input", function(msg) {
       node.status({});
       var delayUnits = node.units;
@@ -77,6 +107,7 @@ module.exports = function(RED) {
           stopped = true;
           var msg2 = RED.util.cloneMessage(msg);
           msg2.payload = "stopped";
+          deleteState(fs, node);
           node.send([null, msg2, msg2]);
         } else {
           msg._timerpass = true;
@@ -109,7 +140,7 @@ module.exports = function(RED) {
           } else {
             actualDelay = node.duration;
           }
-
+          writeState(fs, node, msg, actualDelay);
           timeout = setTimeout(function() {
             clearInterval(countdown);
             node.status({});
@@ -120,6 +151,7 @@ module.exports = function(RED) {
               if (reporting == "none") {
                 msg3 = null;
               }
+              deleteState(fs, node);
               node.send([msg, msg2, msg3]);
             }
             timeout = null;
@@ -140,7 +172,6 @@ module.exports = function(RED) {
               //for the first period, if we have a non-full minute increment
               //we need to execute a special interval to use it up.
               miniTimeout = setTimeout(function() {
-                //clearInterval(countdown);
                 if ((actualDelay % 60000) != 0) {
                   actualDelay = actualDelay - (actualDelay % 60000);
                   var msg3 = {payload: displayTime(actualDelay)};
@@ -192,31 +223,74 @@ module.exports = function(RED) {
         }
       }
     });
+
     this.on("close", function() {
       if (timeout) {
         clearTimeout(timeout);
+      }
+
+      if (countdown) {
         clearInterval(countdown);
+      }
+
+      if (miniTimeout) {
         clearTimeout(miniTimeout);
       }
       node.status({});
     });
   }
 
+
   function displayTime(actualDelay) {
-    var aD = actualDelay;
+    //var aD = actualDelay;
     var timeToDisplay = "";
     var hours,minutes,seconds;
-    if(actualDelay < 86400000) {
-      timeToDisplay = new Date(actualDelay).toISOString().substr(11, 8);
-    } else {
-      actualDelay = actualDelay / 1000;
-      hours = String(Math.floor(actualDelay / 3600)).padStart(2,"0");
-      actualDelay %= 3600;
-      minutes = String(Math.floor(actualDelay / 60)).padStart(2,"0");
-      seconds = String(actualDelay % 60).padStart(2,"0");
-      timeToDisplay = hours+":"+minutes+":"+seconds;
-    }
+
+    actualDelay = actualDelay / 1000;
+    hours = String(Math.floor(actualDelay / 3600)).padStart(2,"0");
+    actualDelay %= 3600;
+    minutes = String(Math.floor(actualDelay / 60)).padStart(2,"0");
+    seconds = String(actualDelay % 60).padStart(2,"0");
+    timeToDisplay = hours+":"+minutes+":"+seconds;
     return timeToDisplay;
+  }
+
+  function writeState(fs, node, msg, delay) {
+    if (node.persist == true) {
+  		try {
+  			if (!fs.existsSync("states")) fs.mkdirSync("states");
+        var target = (new Date((new Date().getTime() + delay))).toISOString();
+  			fs.writeFileSync("states/" + node.id.toString(), "{\"reporting\":\"" + node.reporting + "\",\"time\":\"" + target + "\", \"origmsg\":" + JSON.stringify(msg) + "}");
+  		} catch (error) {
+        node.error("Error writing persistent file for stoptimer-varidelay node " + node.id.toString());
+  			node.error(error.toString());
+  		}
+		}
+  }
+
+  function readState(fs, node) {
+    var retVal = -1;
+		try {
+			var contents = fs.readFileSync("states/" + node.id.toString()).toString();
+			if (typeof contents !== 'undefined') {
+				retVal = contents;
+			}
+		} catch (error) {
+      node.error("Error reading persistent file for stoptimer-varidelay node " + node.id.toString());
+			node.error(error.toString());
+		}
+    return retVal;
+  }
+
+  function deleteState(fs, node) {
+    try {
+      if (fs.existsSync("states/" + node.id.toString())) {
+        fs.unlinkSync("states/" + node.id.toString());
+      }
+    } catch (error) {
+      node.error("Error deleting persistent file for stoptimer-varidelay node " + node.id.toString());
+      node.error(error.toString());
+    }
   }
   RED.nodes.registerType("stoptimer-varidelay", StopTimerVariDelay);
 }

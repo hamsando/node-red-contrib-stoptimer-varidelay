@@ -26,7 +26,8 @@
             payloadtype: {value:'num'},
             payloadval: {value:"0"},
             name: {value:""},
-            reporting: {value:"none"}
+            reporting: {value:"none"},
+			persist: {value:false} 
         },
         inputs:1,
         outputs:3,
@@ -42,8 +43,8 @@
         $("#node-input-payloadval").typedInput({
         default: 'num',
             typeField: $("#node-input-payloadtype"),
-        types:['str','num','bool']
-            });
+			types:['str','num','bool']
+        });
 
         if (this.durationType == null) {
             this.durationType = "num";
@@ -54,24 +55,27 @@
         $("#node-input-duration").typedInput({
         default: 'num',
             typeField: $("#node-input-durationType"),
-        types:['num','env']
-            });
+			types:['num','env']
+        });
 
         $("#node-input-duration").typedInput('type', this.durationType);
 
         $("#node-input-reporting").val(this.reporting);
+		
     }
     });
 </script>
 
 <script type="text/x-red" data-template-name="stoptimer-varidelay">
     <div class="form-row">
-        <label for="node-input-duration"><i class="fa fa-clock-o"></i> Timer</label>
+		<i class="fa fa-clock-o"></i>
+        <label for="node-input-duration"> Timer</label>
         <input type="hidden" id="node-input-durationType">
         <input type="text" id="node-input-duration" style="text-align:end; width:270px !important">
     </div>
     <div class="form-row">
-        <label></label>
+		<i class="fa fa-bars"></i>
+		<label for "node-input-units"> Units</label>
         <select id="node-input-units">
             <option value="Millisecond">Milliseconds</option>
             <option value="Second">Seconds</option>
@@ -80,7 +84,8 @@
         </select>
     </div>
     <div class="form-row">
-        <label for "node-input-reporting"><i class="fa fa-heartbeat"></i> Reporting</label>
+		<i class="fa fa-heartbeat"></i>
+        <label for "node-input-reporting"> Reporting</label>
         <select id="node-input-reporting">
             <option value="none">Never</option>
             <option value="every_second">Every Second</option>
@@ -88,24 +93,26 @@
         </select>
     </div>
     <div class="form-row">
-        <label for="node-input-payloadtype"><i class="fa fa-envelope"></i> 2nd Payload</label>
+		<i class="fa fa-floppy-o"></i>
+		<label style="width:auto" for="node-input-persist"> Resume timer on deploy/restart</label>
+		<input type="checkbox" id="node-input-persist" style="display:inline-block; width:auto; vertical-align:top;">	
+    </div>	
+    <div class="form-row">
+		<i class="fa fa-envelope"></i>
+        <label for="node-input-payloadtype"> 2nd Payload</label>
         <input type="hidden" id="node-input-payloadtype">
         <input style="width: 70%" type="text" id="node-input-payloadval">
     </div>
     <div class="form-row">
-        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+		<i class="fa fa-tag"></i>
+        <label for="node-input-name"> Name</label>
         <input type="text" id="node-input-name" placeholder="Name"></input>
     </div>
 </script>
 
 <script type="text/x-red" data-help-name="stoptimer-varidelay">
     <p><B>General usage</B><br>
-       Sends the <code>msg</code> through the first output after the set timer duration. If a new <code>msg</code> is received before the timer has ended,
-       it will replace the existing <code>msg</code> and the timer will be restarted, unless the new <code>msg</code> has a <code>payload</code> of
-       <code>stop</code> or <code>STOP</code>, in which case it will stop the timer. The second output allows you to send an additional payload of a number,
-       string or boolean. If the timer is stopped, the second and third output will automatically send a payload of <code>stopped</code>. The third output will send the
-       time remaining, in HH:MM:SS format as time ticks away. The status below the node as well as the third output can be configured via the <I>Reporting</I>
-       field in the node:
+       Sends the <code>msg</code> through the first output after the set timer duration. If a new <code>msg</code> is received before the timer has ended, it will replace the existing <code>msg</code> and the timer will be restarted, unless the new <code>msg</code> has a <code>payload</code> of <code>stop</code> or <code>STOP</code>, in which case it will stop the timer. The second output allows you to send an additional payload of a number, string or boolean. If the timer is stopped, the second and third output will automatically send a payload of <code>stopped</code>. The third output will send the time remaining, in HH:MM:SS format as time ticks away. The status below the node as well as the third output can be configured via the <I>Reporting</I> field in the node:
         <ul>
           <li>Never(default)</li>
           <li>Every Second</li>
@@ -114,25 +121,26 @@
         The last option works as follows:
         <ul>
           <li>While there is more than 1 minute remaining, the timer will decrement every minute. At the 1 minute point, it will switch to reporting every second.</li>
-          <li>The exception to this rule is if your duration is not a minute increment. In that case, the first update will be for the partial minute, after
-        which it will operate as noted above. (for example: 2.5 minutes will decrement to 2 minutes, then 1 minute, then every second down to zero)</li>
+          <li>The exception to this rule is if your duration is not a minute increment. In that case, the first update will be for the partial minute, after which it will operate as noted above. (for example: 2.5 minutes will decrement to 2 minutes, then 1 minute, then every second down to zero)</li>
         </ul>
     </p>
     <p>
       This is like the built in delay function of node-red, but with the ability to not only restart the timer, but to stop it as well.
     </p>
     <p><B>Overriding the node via incoming messages</B><br>
-      If the input contains <code>msg.delay</code>, then the delay will be <code>msg.delay</code> units of time, where the units are whatever the units
-      are defaulted to in the node iteself. In the absense of a <code>msg.delay</code>, or a value in <code>msg.delay</code> that can not be converted
-      to an int, the value configured within the node will be used. If the value of <code>msg.delay</code> is less than 0, then 0 is used.
+      If the input contains <code>msg.delay</code>, then the delay will be <code>msg.delay</code> units of time, where the units are whatever the units       are defaulted to in the node iteself. In the absense of a <code>msg.delay</code>, or a value in <code>msg.delay</code> that can not be converted       to an int, the value configured within the node will be used. If the value of <code>msg.delay</code> is less than 0, then 0 is used.
     </p>
     <p>
-      If the input contains <code>msg.units</code>, with a value of "Milliseconds", "Seconds", "Minutes" or "Hours" then that will over-ride what is defaulted
-      in the node. In the absense of a <code>msg.units</code>, or an unknown string in <code>msg.units</code> the units configured within the node will be used.
-      In the case of an unknown string, a warning message will appear in the Debug logs.
+      If the input contains <code>msg.units</code>, with a value of "Milliseconds", "Seconds", "Minutes" or "Hours" then that will over-ride what is defaulted in the node. In the absense of a <code>msg.units</code>, or an unknown string in <code>msg.units</code> the units configured within the node will be used. In the case of an unknown string, a warning message will appear in the Debug logs.
     </p>
     <p><b>Special Note on Milliseconds</b>
-      While you can set Milliseconds, I would not rely on the accuracy for anything critical. For the purposes of the node status and output 3, except in the
-      case where Reporting is set to None, the milliseconds are not displayed or provided on the 3rd output as it wouldn't make sense based on the available
-      reporting rates.
+      While you can set Milliseconds, I would not rely on the accuracy for anything critical. For the purposes of the node status and output 3, except in the case where Reporting is set to None, the milliseconds are not displayed or provided on the 3rd output as it wouldn't make sense based on the available reporting rates.
+	</p>
+	<p><b>Resume timer on deploy/restart</b>
+	  This option is <i>DISABLED</i> by default. If you <i>ENABLE</i> it (check the checkbox) then if the stoptimer is running and you re-Deploy the flow, or restart Node-RED, then the timer will automatically restart itself where it should be. What does that mean? A couple of examples will help here. 
+	  <ul>
+	    <li>If you had a 10 minute stoptimer running, with 6 minutes elapsed (ie: 4 minutes left) and you hit Deploy, normally the stoptimer would no longer be running, but if you have this feature enabled, the timer will continue running from the 6 minute mark (ie: counting down 4 more minutes and then trigger).</li>
+	    <li>If you had a 10 minute stoptimer running, with 6 minutes elapsed (ie: 4 minutes left) and you <i>stopped</i> Node-RED for 2 minutes and then restarted it, normally the stoptimer would no longer be running, but if you have this feature enabled, the timer will continue running from the 8 minute mark (6 minutes from the original run + 2 minutes of Node-RED downtime) -- counting down 2 more minutes and then trigger.</li>
+		<li><b>Special Case</b> If on restart or re-Deploy, there is less than 3 seconds remaining on the stoptimer (or if the stoptimer should have elapsed already) then the stoptimer is set to a random amount between 3 and 8 seconds. This helps to ensure than anything else that needs to initialize before the stoptimer triggers, has a chance to initialize, it also helps so that if you happen to have a lot of timers, they don't all trigger at once and flood unsuspecting nodes/devices.</li>		
+	  </ul>
 </script>

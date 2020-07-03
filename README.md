@@ -24,6 +24,12 @@ While you can set Milliseconds, I would not rely on the accuracy for anything cr
 case where Reporting is set to None, the milliseconds are not displayed or provided on the 3rd output as it wouldn't make sense based on the available
 reporting rates.
 
+__Resume timer on deploy/restart__
+This option is "DISABLED" by default. If you "ENABLE" it (check the checkbox) then if the stoptimer is running and you re-Deploy the flow, or restart Node-RED, then the timer will automatically restart itself where it should be. What does that mean? A couple of examples will help here. 	  
+* If you had a 10 minute stoptimer running, with 6 minutes elapsed (ie: 4 minutes left) and you hit Deploy, normally the stoptimer would no longer be running, but if you have this feature enabled, the timer will continue running from the 6 minute mark (ie: counting down 4 more minutes and then trigger).
+* If you had a 10 minute stoptimer running, with 6 minutes elapsed (ie: 4 minutes left) and you <i>stopped</i> Node-RED for 2 minutes and then restarted it, normally the stoptimer would no longer be running, but if you have this feature enabled, the timer will continue running from the 8 minute mark (6 minutes from the original run + 2 minutes of Node-RED downtime) -- counting down 2 more minutes and then trigger.
+* **Special Case** If on restart or re-Deploy, there is less than 3 seconds remaining on the stoptimer (or if the stoptimer should have elapsed already) then the stoptimer is set to a random amount between 3 and 8 seconds. This helps to ensure than anything else that needs to initialize before the stoptimer triggers, has a chance to initialize, it also helps so that if you happen to have a lot of timers, they don't all trigger at once and flood unsuspecting nodes/devices.		
+
 __Release Notes__
 0.0.1 
 - Initial Release
@@ -68,3 +74,8 @@ __Release Notes__
 
 0.3.2
 - putch: Fixed time output when time is greater/equal 24 hours
+
+0.4.0
+- putch: Optimized code which displays the countdown 
+- putch: Fixed missing 'Units' label in node config screen.
+- putch: Added stoptime countdown persistance across Deploy/Restart
