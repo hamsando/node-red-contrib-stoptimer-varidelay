@@ -1,7 +1,7 @@
-Stop Timer (Variable Delay) for node-red
-----------------------------------------
+# Stop Timer (Variable Delay) for node-red #
 
-__General usage__
+
+## General usage ##
 Sends the msg through the first output after the set timer duration. If a new msg is received before the timer has ended, it will replace the existing msg and the timer will be restarted, unless the new msg has a payload of 'stop' or 'STOP', in which case it will stop the timer. The second output allows you to send an additional payload of a number, string or boolean. If the timer is stopped, the second and third output will automatically send a payload of 'stopped'. The third output will send the time remaining, in HH:MM:SS format as time ticks away. The status below the node as well as the third output can be configured to update:
 
 * Never(default)
@@ -14,23 +14,24 @@ The last option works as follows:
 
 This is like the built in delay function of node-red, but with the ability to not only restart the timer, but to stop it as well.
 
-__Overriding the node via incoming messages__
-If the input contains msg.delay, then the delay will be msg.delay units of time, where the units are whatever the units are defaulted to in the node iteself. In the absense of a msg.delay, or a value in msg.delay that can not be converted to an int, the value configured within the node will be used. If the value of msg.delay is less than 0, then 0 is used.
+## Overriding the node via incoming messages ##
+If the input contains msg.delay, then the delay will be 'msg.delay' units of time, where the units are whatever the units are defaulted to in the node iteself. In the absense of a 'msg.delay', or a value in 'msg.delay' that can not be converted to an int, the value configured within the node will be used. If the value of 'msg.delay' is less than 0, then 0 is used.
 
-If the input contains msg.units, with a value of "Milliseconds", "Seconds", "Minutes" or "Hours" then that will over-ride what is defaulted in the node. In the absense of a msg.units, or an unknown string in msg.units the units configured within the node will be used. In the case of an unknown string, a warning message will appear in the Debug logs.
+If the input contains 'msg.units', with a value of "Milliseconds", "Seconds", "Minutes" or "Hours" then that will over-ride what is defaulted in the node. In the absense of a 'msg.units', or an unknown string in msg.units the units configured within the node will be used. In the case of an unknown string, a warning message will appear in the Debug logs.
 
-__Special Note on Milliseconds__
+### Special Note on Milliseconds ###
 While you can set Milliseconds, I would not rely on the accuracy for anything critical. For the purposes of the node status and output 3, except in the 
 case where Reporting is set to None, the milliseconds are not displayed or provided on the 3rd output as it wouldn't make sense based on the available
 reporting rates.
 
-__Resume timer on deploy/restart__
-This option is "DISABLED" by default. If you "ENABLE" it (check the checkbox) then if the stoptimer is running and you re-Deploy the flow, or restart Node-RED, then the timer will automatically restart itself where it should be. What does that mean? A couple of examples will help here. 	  
+## Resume timer on deploy/restart ##
+This option is **DISABLED** by default. If you ENABLE it (check the checkbox) then if the stoptimer is running and you re-Deploy the flow, or restart Node-RED, then the timer will automatically restart itself where it should be. What does that mean? A couple of examples will help here. 	  
 * If you had a 10 minute stoptimer running, with 6 minutes elapsed (ie: 4 minutes left) and you hit Deploy, normally the stoptimer would no longer be running, but if you have this feature enabled, the timer will continue running from the 6 minute mark (ie: counting down 4 more minutes and then trigger).
-* If you had a 10 minute stoptimer running, with 6 minutes elapsed (ie: 4 minutes left) and you <i>stopped</i> Node-RED for 2 minutes and then restarted it, normally the stoptimer would no longer be running, but if you have this feature enabled, the timer will continue running from the 8 minute mark (6 minutes from the original run + 2 minutes of Node-RED downtime) -- counting down 2 more minutes and then trigger.
+* If you had a 10 minute stoptimer running, with 6 minutes elapsed (ie: 4 minutes left) and you *stopped* Node-RED for 2 minutes and then restarted it, normally the stoptimer would no longer be running, but if you have this feature enabled, the timer will continue running from the 8 minute mark (6 minutes from the original run + 2 minutes of Node-RED downtime) -- counting down 2 more minutes and then trigger.
 * **Special Case** If on restart or re-Deploy, there is less than 3 seconds remaining on the stoptimer (or if the stoptimer should have elapsed already) then the stoptimer is set to a random amount between 3 and 8 seconds. This helps to ensure than anything else that needs to initialize before the stoptimer triggers, has a chance to initialize, it also helps so that if you happen to have a lot of timers, they don't all trigger at once and flood unsuspecting nodes/devices.		
+This persistence is **not** related to "Persistent Context" (the contextStorage option in 'settings.js'). When the "Resume timer" option is enabled in the node, the node will store timer related information in a 'stvd-timers' subdirectory of '*userDir* (where *userDir* is defined in 'settings.js'). If *userDir* is not explicitly defined, it defaults to a directory called '.node-red' in your home user directory. The files in this directory will be created/destroyed as needed by the node.
 
-__Release Notes__
+## Release Notes ##
 0.0.1 
 - Initial Release
 
@@ -81,5 +82,10 @@ __Release Notes__
 - putch: Added stoptime countdown persistance across Deploy/Restart
 
 0.4.1
--putch: Changed location of saved persistent data
--putch: Remove persistent data for node if node is deleted
+- putch: Changed location of saved persistent data
+- putch: Remove persistent data for node if node is deleted
+
+0.4.2
+- putch: Move location of saved persistent data to a subdir of userDir
+- putch: Added additional documentation clarify no relation to persistent context configuration.
+

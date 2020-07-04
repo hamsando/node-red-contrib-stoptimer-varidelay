@@ -20,7 +20,9 @@ module.exports = function(RED) {
   "use strict";
   function StopTimerVariDelay(n) {
     RED.nodes.createNode(this, n);
-    var fs = require('fs');
+    let fs = require('fs');
+    let path = require('path');
+    const stvdtimersFile = path.join(RED.settings.userDir, "stvd-timers",n.id.toString());
 
     this.units = n.units || "Second";
     this.durationType = n.durationType;
@@ -58,10 +60,10 @@ module.exports = function(RED) {
     // Read the state from a perisistent file
   	if (this.persist == true) {
   	  try {
-  		  if (fs.existsSync("stvd-timers/" + n.id.toString())) {
-          var savedState = JSON.parse(readState(fs,n));
-          var targetMS = (new Date(savedState.time.toString())).getTime();
-          var nowMS = (new Date).getTime();
+  		  if (fs.existsSync(stvdtimersFile)) {
+          let savedState = JSON.parse(readState());
+          let targetMS = (new Date(savedState.time.toString())).getTime();
+          let nowMS = (new Date).getTime();
           this.reporting = savedState.reporting.toString();
 
           if ((targetMS-nowMS) <= 3000) {
@@ -75,25 +77,24 @@ module.exports = function(RED) {
           this.emit("input", savedState.origmsg);
   			}
   		} catch (error) {
-        n.error("Error processing persistent file data for stoptimer-varidelay node " + n.id.toString());
-        n.error(error.toString());
+        n.error("Error processing persistent file data for stoptimer-varidelay node " + n.id.toString()  + "\n\n" + error.toString());
   		}
   	} else {
-      deleteState(fs, n);
+      deleteState();
     }
 
-    var node = this;
-    var timeout = null;
-    var miniTimeout = null;
-    var countdown = null;
-    var stopped = false;
-    var actualDelay = 0;
-    var delayFactor = 1000;
-    var reporting = "none";
+    let node = this;
+    let timeout = null;
+    let miniTimeout = null;
+    let countdown = null;
+    let stopped = false;
+    let actualDelay = 0;
+    let delayFactor = 1000;
+    let reporting = "none";
 
     this.on("input", function(msg) {
       node.status({});
-      var delayUnits = node.units;
+      let delayUnits = node.units;
       reporting = node.reporting;
       if(stopped === false || msg._timerpass !== true) {
         stopped = false;
@@ -105,9 +106,9 @@ module.exports = function(RED) {
         if (msg.payload == "stop" || msg.payload == "STOP") {
           node.status({fill: "red", shape: "ring", text: "stopped"});
           stopped = true;
-          var msg2 = RED.util.cloneMessage(msg);
+          let msg2 = RED.util.cloneMessage(msg);
           msg2.payload = "stopped";
-          deleteState(fs, node);
+          deleteState();
           node.send([null, msg2, msg2]);
         } else {
           msg._timerpass = true;
@@ -140,18 +141,19 @@ module.exports = function(RED) {
           } else {
             actualDelay = node.duration;
           }
-          writeState(fs, node, msg, actualDelay);
+          writeState(msg);
+
           timeout = setTimeout(function() {
             clearInterval(countdown);
             node.status({});
             if(stopped === false) {
-              var msg2 = RED.util.cloneMessage(msg);
-              var msg3 = { payload: "00:00:00" };
+              let msg2 = RED.util.cloneMessage(msg);
+              let msg3 = { payload: "00:00:00" };
               msg2.payload = node.payloadval;
               if (reporting == "none") {
                 msg3 = null;
               }
-              deleteState(fs, node);
+              deleteState();
               node.send([msg, msg2, msg3]);
             }
             timeout = null;
@@ -159,7 +161,7 @@ module.exports = function(RED) {
             miniTimeout = null;
           }, actualDelay);
 
-          var msg3 = "";
+          let msg3 = "";
           if (reporting == "none") {
             msg3 = {payload: displayTime(actualDelay)};
             node.status({fill: "green", shape: "dot", text: msg3.payload});
@@ -174,7 +176,7 @@ module.exports = function(RED) {
               miniTimeout = setTimeout(function() {
                 if ((actualDelay % 60000) != 0) {
                   actualDelay = actualDelay - (actualDelay % 60000);
-                  var msg3 = {payload: displayTime(actualDelay)};
+                  let msg3 = {payload: displayTime(actualDelay)};
                   node.status({fill: "green", shape: "dot", text: msg3.payload});
                   node.send([null, null, msg3]);
                 }
@@ -182,7 +184,7 @@ module.exports = function(RED) {
                 if (actualDelay <= 60000) {
                   countdown = setInterval(function() {
                     actualDelay = actualDelay - 1000;
-                    var msg3 = {payload: displayTime(actualDelay)};
+                    let msg3 = {payload: displayTime(actualDelay)};
                     node.status({fill: "green", shape: "dot", text: msg3.payload});
                     node.send([null, null, msg3]);
                   }, 1000);
@@ -190,7 +192,7 @@ module.exports = function(RED) {
                   countdown = setInterval(function() {
                     if (actualDelay > 60000) {
                       actualDelay = actualDelay - 60000;
-                      var msg3 = {payload: displayTime(actualDelay)};
+                      let msg3 = {payload: displayTime(actualDelay)};
                       node.status({fill: "green", shape: "dot", text: msg3.payload});
                       node.send([null, null, msg3]);
                     }
@@ -201,7 +203,7 @@ module.exports = function(RED) {
                       countdown = null;
                       countdown = setInterval(function() {
                         actualDelay = actualDelay - 1000;
-                        var msg3 = {payload: displayTime(actualDelay)};
+                        let msg3 = {payload: displayTime(actualDelay)};
                         node.status({fill: "green", shape: "dot", text: msg3.payload});
                         node.send([null, null, msg3]);
                       }, 1000);
@@ -214,7 +216,7 @@ module.exports = function(RED) {
               //Update every second, always
               countdown = setInterval(function() {
                 actualDelay = actualDelay - 1000;
-                var msg3 = {payload: displayTime(actualDelay)};
+                let msg3 = {payload: displayTime(actualDelay)};
                 node.status({fill: "green", shape: "dot", text: msg3.payload});
                 node.send([null, null, msg3]);
               }, 1000);
@@ -237,63 +239,63 @@ module.exports = function(RED) {
         clearTimeout(miniTimeout);
       }
       node.status({});
+
       if (removed) {
-        deleteState(fs, node);
+        deleteState();
       }
       done();
     });
-  }
 
+    //function displayTime(actualDelay) {
+    function displayTime(actualDelay) {
+      let timeToDisplay = "";
+      let hours,minutes,seconds;
 
-  function displayTime(actualDelay) {
-    //var aD = actualDelay;
-    var timeToDisplay = "";
-    var hours,minutes,seconds;
+      actualDelay = actualDelay / 1000;
+      hours = String(Math.floor(actualDelay / 3600)).padStart(2,"0");
+      actualDelay %= 3600;
+      minutes = String(Math.floor(actualDelay / 60)).padStart(2,"0");
+      seconds = String(actualDelay % 60).padStart(2,"0");
+      timeToDisplay = hours+":"+minutes+":"+seconds;
+      return timeToDisplay;
+    }
 
-    actualDelay = actualDelay / 1000;
-    hours = String(Math.floor(actualDelay / 3600)).padStart(2,"0");
-    actualDelay %= 3600;
-    minutes = String(Math.floor(actualDelay / 60)).padStart(2,"0");
-    seconds = String(actualDelay % 60).padStart(2,"0");
-    timeToDisplay = hours+":"+minutes+":"+seconds;
-    return timeToDisplay;
-  }
-
-  function writeState(fs, node, msg, delay) {
-    if (node.persist == true) {
-  		try {
-  			if (!fs.existsSync("stvd-timers")) fs.mkdirSync("stvd-timers");
-        var target = (new Date((new Date().getTime() + delay))).toISOString();
-  			fs.writeFileSync("stvd-timers/" + node.id.toString(), "{\"reporting\":\"" + node.reporting + "\",\"time\":\"" + target + "\", \"origmsg\":" + JSON.stringify(msg) + "}");
-  		} catch (error) {
-        node.error("Error writing persistent file for stoptimer-varidelay node " + node.id.toString());
-  			node.error(error.toString());
+    //function writeState(fs, node, msg, delay) {
+    function writeState(msg) {
+      if (node.persist == true) {
+    		try {
+    			if (!fs.existsSync(path.dirname(stvdtimersFile))) fs.mkdirSync(path.dirname(stvdtimersFile), { recursive: true });
+          let target = (new Date((new Date().getTime() + actualDelay))).toISOString();
+    			fs.writeFileSync(stvdtimersFile, "{\"reporting\":\"" + node.reporting + "\",\"time\":\"" + target + "\", \"origmsg\":" + JSON.stringify(msg) + "}");
+    		} catch (error) {
+          node.error("Error writing persistent file for stoptimer-varidelay node " + node.id.toString() + "\n\n" + error.toString());
+    		}
   		}
-		}
-  }
+    }
 
-  function readState(fs, node) {
-    var retVal = -1;
-		try {
-			var contents = fs.readFileSync("stvd-timers/" + node.id.toString()).toString();
-			if (typeof contents !== 'undefined') {
-				retVal = contents;
-			}
-		} catch (error) {
-      node.error("Error reading persistent file for stoptimer-varidelay node " + node.id.toString());
-			node.error(error.toString());
-		}
-    return retVal;
-  }
+    //function readState(fs, node) {
+    function readState() {
+      let retVal = -1;
+  		try {
+  			let contents = fs.readFileSync(stvdtimersFile).toString();
+  			if (typeof contents !== 'undefined') {
+  				retVal = contents;
+  			}
+  		} catch (error) {
+        node.error("Error reading persistent file for stoptimer-varidelay node " + node.id.toString() + "\n\n" + error.toString());
+  		}
+      return retVal;
+    }
 
-  function deleteState(fs, node) {
-    try {
-      if (fs.existsSync("stvd-timers/" + node.id.toString())) {
-        fs.unlinkSync("stvd-timers/" + node.id.toString());
+    //function deleteState(fs, node) {
+    function deleteState() {
+      try {
+        if (fs.existsSync(stvdtimersFile)) {
+          fs.unlinkSync(stvdtimersFile);
+        }
+      } catch (error) {
+        node.error("Error deleting persistent file for stoptimer-varidelay node " + node.id.toString() + "\n\n" + error.toString());
       }
-    } catch (error) {
-      node.error("Error deleting persistent file for stoptimer-varidelay node " + node.id.toString());
-      node.error(error.toString());
     }
   }
   RED.nodes.registerType("stoptimer-varidelay", StopTimerVariDelay);
