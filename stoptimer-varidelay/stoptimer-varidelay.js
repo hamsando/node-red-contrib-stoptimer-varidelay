@@ -22,6 +22,7 @@ module.exports = function(RED) {
     RED.nodes.createNode(this, n);
     let fs = require('fs');
     let path = require('path');
+    require('./cycle.js');
     const stvdtimersFile = path.join(RED.settings.userDir, "stvd-timers",n.id.toString());
 
     this.units = n.units || "Second";
@@ -58,10 +59,10 @@ module.exports = function(RED) {
     }
 
     // Read the state from a perisistent file
-  	if (this.persist == true) {
-  	  try {
-  		  if (fs.existsSync(stvdtimersFile)) {
-          let savedState = JSON.parse(readState());
+    if (this.persist == true) {
+      try {
+        if (fs.existsSync(stvdtimersFile)) {
+          let savedState = JSON.retrocycle(JSON.parse(readState()));
           let targetMS = (new Date(savedState.time.toString())).getTime();
           let nowMS = (new Date).getTime();
           this.reporting = savedState.reporting.toString();
@@ -75,11 +76,11 @@ module.exports = function(RED) {
           savedState.origmsg.units = "millisecond";
           savedState.origmsg.delay = targetMS;
           this.emit("input", savedState.origmsg);
-  			}
-  		} catch (error) {
-        n.error("Error processing persistent file data for stoptimer-varidelay node " + n.id.toString()  + "\n\n" + error.toString());
-  		}
-  	} else {
+        }
+      } catch (error) {
+        this.error("Error processing persistent file data for stoptimer-varidelay node " + n.id.toString()  + "\n\n" + error.toString());
+      }
+    } else {
       deleteState();
     }
 
@@ -246,7 +247,6 @@ module.exports = function(RED) {
       done();
     });
 
-    //function displayTime(actualDelay) {
     function displayTime(actualDelay) {
       let timeToDisplay = "";
       let hours,minutes,seconds;
@@ -260,34 +260,31 @@ module.exports = function(RED) {
       return timeToDisplay;
     }
 
-    //function writeState(fs, node, msg, delay) {
     function writeState(msg) {
       if (node.persist == true) {
-    		try {
-    			if (!fs.existsSync(path.dirname(stvdtimersFile))) fs.mkdirSync(path.dirname(stvdtimersFile), { recursive: true });
+        try {
+          if (!fs.existsSync(path.dirname(stvdtimersFile))) fs.mkdirSync(path.dirname(stvdtimersFile), { recursive: true });
           let target = (new Date((new Date().getTime() + actualDelay))).toISOString();
-    			fs.writeFileSync(stvdtimersFile, "{\"reporting\":\"" + node.reporting + "\",\"time\":\"" + target + "\", \"origmsg\":" + JSON.stringify(msg) + "}");
-    		} catch (error) {
+          fs.writeFileSync(stvdtimersFile, JSON.stringify(JSON.decycle({reporting: node.reporting, time: target, origmsg: msg})));          
+        } catch (error) {
           node.error("Error writing persistent file for stoptimer-varidelay node " + node.id.toString() + "\n\n" + error.toString());
-    		}
-  		}
+        }
+      }
     }
 
-    //function readState(fs, node) {
     function readState() {
       let retVal = -1;
-  		try {
-  			let contents = fs.readFileSync(stvdtimersFile).toString();
-  			if (typeof contents !== 'undefined') {
-  				retVal = contents;
-  			}
-  		} catch (error) {
+      try {
+        let contents = fs.readFileSync(stvdtimersFile).toString();
+        if (typeof contents !== 'undefined') {
+          retVal = contents;
+        }
+      } catch (error) {
         node.error("Error reading persistent file for stoptimer-varidelay node " + node.id.toString() + "\n\n" + error.toString());
-  		}
+      }
       return retVal;
     }
 
-    //function deleteState(fs, node) {
     function deleteState() {
       try {
         if (fs.existsSync(stvdtimersFile)) {

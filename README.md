@@ -89,3 +89,6 @@ This persistence is **not** related to "Persistent Context" (the contextStorage 
 - putch: Move location of saved persistent data to a subdir of userDir
 - putch: Added additional documentation clarify no relation to persistent context configuration.
 
+0.4.3
+- putch: Fixed a logging issue if there is an issue reading the persistent data on restart
+- putch: Switched from parse/stringify to decycle/retrocycle to handle JSON with cyclical data
