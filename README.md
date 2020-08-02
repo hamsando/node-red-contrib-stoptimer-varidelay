@@ -92,6 +92,3 @@ This persistence is **not** related to "Persistent Context" (the contextStorage 
 0.4.3
 - putch: Fixed a logging issue if there is an issue reading the persistent data on restart
 - putch: Switched from parse/stringify to decycle/retrocycle to handle JSON with cyclical data
-
-0.4.4
-- putch: Fixed an issue where if the delay was longer than 24 days, the timer would fire immediately 
