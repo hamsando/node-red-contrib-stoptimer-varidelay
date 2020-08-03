@@ -86,12 +86,16 @@ module.exports = function(RED) {
 
     let node = this;
     let timeout = null;
-    let miniTimeout = null;
+    let miniTimeout = null; 
     let countdown = null;
     let stopped = false;
-    let actualDelay = 0;
+    let delayRemainingDisplay = 0;
     let delayFactor = 1000;
     let reporting = "none";
+    
+    const maxTimeout = 2147483647; //max duration of setTimeout
+    let actualDelayInUse = 0;
+    let actualDelayRemaining = 0;
 
     this.on("input", function(msg) {
       node.status({});
@@ -138,15 +142,27 @@ module.exports = function(RED) {
           }
 
           if ((msg.delay != null) && (!isNaN(parseInt(msg.delay,10)))) {
-            actualDelay = msg.delay * delayFactor;
+            delayRemainingDisplay = msg.delay * delayFactor;
           } else {
-            actualDelay = node.duration;
+            delayRemainingDisplay = node.duration;
           }
           writeState(msg);
 
+          actualDelayRemaining = delayRemainingDisplay;        
+          if (actualDelayRemaining > maxTimeout) {
+            actualDelayInUse = maxTimeout;
+            actualDelayRemaining = actualDelayRemaining - maxTimeout;
+          } else {
+            actualDelayInUse = actualDelayRemaining;
+            actualDelayRemaining = 0;
+          }
+
+          timeout = setTimeout(timerElapsed,actualDelayInUse,msg);
+          /*
           timeout = setTimeout(function() {
             clearInterval(countdown);
             node.status({});
+            
             if(stopped === false) {
               let msg2 = RED.util.cloneMessage(msg);
               let msg3 = { payload: "00:00:00" };
@@ -161,50 +177,51 @@ module.exports = function(RED) {
             countdown = null;
             miniTimeout = null;
           }, actualDelay);
+          */
 
           let msg3 = "";
           if (reporting == "none") {
-            msg3 = {payload: displayTime(actualDelay)};
+            msg3 = {payload: displayTime(delayRemainingDisplay)};
             node.status({fill: "green", shape: "dot", text: msg3.payload});
           } else {
-            msg3 = {payload: displayTime(actualDelay)};
+            msg3 = {payload: displayTime(delayRemainingDisplay)};
             node.status({fill: "green", shape: "dot", text: msg3.payload});
             node.send([null, null, msg3]);
             //report every minute, but during the last minute, every second
-            if ((actualDelay > 60000) && (reporting == "last_minute_seconds")) {
+            if ((delayRemainingDisplay > 60000) && (reporting == "last_minute_seconds")) {
               //for the first period, if we have a non-full minute increment
               //we need to execute a special interval to use it up.
               miniTimeout = setTimeout(function() {
-                if ((actualDelay % 60000) != 0) {
-                  actualDelay = actualDelay - (actualDelay % 60000);
-                  let msg3 = {payload: displayTime(actualDelay)};
+                if ((delayRemainingDisplay % 60000) != 0) {
+                  delayRemainingDisplay = delayRemainingDisplay - (delayRemainingDisplay % 60000);
+                  let msg3 = {payload: displayTime(delayRemainingDisplay)};
                   node.status({fill: "green", shape: "dot", text: msg3.payload});
                   node.send([null, null, msg3]);
                 }
 
-                if (actualDelay <= 60000) {
+                if (delayRemainingDisplay <= 60000) {
                   countdown = setInterval(function() {
-                    actualDelay = actualDelay - 1000;
-                    let msg3 = {payload: displayTime(actualDelay)};
+                    delayRemainingDisplay = delayRemainingDisplay - 1000;
+                    let msg3 = {payload: displayTime(delayRemainingDisplay)};
                     node.status({fill: "green", shape: "dot", text: msg3.payload});
                     node.send([null, null, msg3]);
                   }, 1000);
                 } else {
                   countdown = setInterval(function() {
-                    if (actualDelay > 60000) {
-                      actualDelay = actualDelay - 60000;
-                      let msg3 = {payload: displayTime(actualDelay)};
+                    if (delayRemainingDisplay > 60000) {
+                      delayRemainingDisplay = delayRemainingDisplay - 60000;
+                      let msg3 = {payload: displayTime(delayRemainingDisplay)};
                       node.status({fill: "green", shape: "dot", text: msg3.payload});
                       node.send([null, null, msg3]);
                     }
 
                     //once we are less than 1 minute, switch to updates every second
-                    if (actualDelay <= 60000) {
+                    if (delayRemainingDisplay <= 60000) {
                       clearInterval(countdown);
                       countdown = null;
                       countdown = setInterval(function() {
-                        actualDelay = actualDelay - 1000;
-                        let msg3 = {payload: displayTime(actualDelay)};
+                        delayRemainingDisplay = delayRemainingDisplay - 1000;
+                        let msg3 = {payload: displayTime(delayRemainingDisplay)};
                         node.status({fill: "green", shape: "dot", text: msg3.payload});
                         node.send([null, null, msg3]);
                       }, 1000);
@@ -212,12 +229,12 @@ module.exports = function(RED) {
                   }, 60000);
                 }
                 miniTimeout = null;
-              }, actualDelay % 60000);
+              }, delayRemainingDisplay % 60000);
             } else {
               //Update every second, always
               countdown = setInterval(function() {
-                actualDelay = actualDelay - 1000;
-                let msg3 = {payload: displayTime(actualDelay)};
+                delayRemainingDisplay = delayRemainingDisplay - 1000;
+                let msg3 = {payload: displayTime(delayRemainingDisplay)};
                 node.status({fill: "green", shape: "dot", text: msg3.payload});
                 node.send([null, null, msg3]);
               }, 1000);
@@ -247,15 +264,45 @@ module.exports = function(RED) {
       done();
     });
 
-    function displayTime(actualDelay) {
+    function timerElapsed(msg) {
+      if (actualDelayRemaining == 0) {
+        clearInterval(countdown);
+        node.status({});
+        
+        if(stopped === false) {
+          let msg2 = RED.util.cloneMessage(msg);
+          let msg3 = { payload: "00:00:00" };
+          msg2.payload = node.payloadval;
+          if (reporting == "none") {
+            msg3 = null;
+          }
+          deleteState();
+          node.send([msg, msg2, msg3]);
+          return;
+        }
+        timeout = null;
+        countdown = null;
+        miniTimeout = null;
+      } else if (actualDelayRemaining > maxTimeout) {
+        actualDelayInUse = maxTimeout;
+        actualDelayRemaining = actualDelayRemaining - maxTimeout;
+      } else {
+        actualDelayInUse = actualDelayRemaining;
+        actualDelayRemaining = 0;
+      }
+
+      timeout = setTimeout(timerElapsed,actualDelayInUse,msg);
+    }
+
+    function displayTime(delayToDisplay) {
       let timeToDisplay = "";
       let hours,minutes,seconds;
 
-      actualDelay = actualDelay / 1000;
-      hours = String(Math.floor(actualDelay / 3600)).padStart(2,"0");
-      actualDelay %= 3600;
-      minutes = String(Math.floor(actualDelay / 60)).padStart(2,"0");
-      seconds = String(actualDelay % 60).padStart(2,"0");
+      delayToDisplay = delayToDisplay / 1000;
+      hours = String(Math.floor(delayToDisplay / 3600)).padStart(2,"0");
+      delayToDisplay %= 3600;
+      minutes = String(Math.floor(delayToDisplay / 60)).padStart(2,"0");
+      seconds = String(delayToDisplay % 60).padStart(2,"0");
       timeToDisplay = hours+":"+minutes+":"+seconds;
       return timeToDisplay;
     }
@@ -264,7 +311,7 @@ module.exports = function(RED) {
       if (node.persist == true) {
         try {
           if (!fs.existsSync(path.dirname(stvdtimersFile))) fs.mkdirSync(path.dirname(stvdtimersFile), { recursive: true });
-          let target = (new Date((new Date().getTime() + actualDelay))).toISOString();
+          let target = (new Date((new Date().getTime() + delayRemainingDisplay))).toISOString();
           fs.writeFileSync(stvdtimersFile, JSON.stringify(JSON.decycle({reporting: node.reporting, time: target, origmsg: msg})));          
         } catch (error) {
           node.error("Error writing persistent file for stoptimer-varidelay node " + node.id.toString() + "\n\n" + error.toString());
