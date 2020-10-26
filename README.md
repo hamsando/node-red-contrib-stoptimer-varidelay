@@ -95,3 +95,6 @@ This persistence is **not** related to "Persistent Context" (the contextStorage 
 
 0.4.4
 - putch: Fixed an issue where if the delay was longer than 24 days, the timer would fire immediately 
+
+0.4.5
+- putch: Fixed issue where the restarting of the timer after NR restart broke in NR 1.2.x. 
