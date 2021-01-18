@@ -49,8 +49,12 @@ module.exports = function(RED) {
 
     if ((this.payloadtype === "num") && (!isNaN(this.payloadval))) {
       this.payloadval = Number(this.payloadval);
-    } else if (this.payloadval === 'true' || this.payloadval === 'false') {
-      this.payloadval = Boolean(this.payloadval);
+    } else if (this.payloadval === 'true' || this.payloadval === 'false') {      
+      let bValue = false;
+      if (this.payloadval === 'true') {
+        bValue = true;
+      } 
+      this.payloadval = bValue;      
     } else if (this.payloadval == "null") {
       this.payloadtype = 'null';
       this.payloadval = null;
@@ -248,7 +252,7 @@ module.exports = function(RED) {
         node.status({});
         
         if(stopped === false) {
-          let msg2 = RED.util.cloneMessage(msg);
+          let msg2 = RED.util.cloneMessage(msg);          
           let msg3 = { payload: "00:00:00" };
           msg2.payload = node.payloadval;
           if (reporting == "none") {

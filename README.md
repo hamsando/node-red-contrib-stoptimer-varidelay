@@ -98,3 +98,6 @@ This persistence is **not** related to "Persistent Context" (the contextStorage 
 
 0.4.5
 - putch: Fixed issue where the restarting of the timer after NR restart broke in NR 1.2.x. 
+
+0.4.6
+- putch: Fixed issue where the 2nd output would always output True when set to boolean
