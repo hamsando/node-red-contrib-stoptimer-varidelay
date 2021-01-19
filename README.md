@@ -101,3 +101,9 @@ This persistence is **not** related to "Persistent Context" (the contextStorage 
 
 0.4.6
 - putch: Fixed issue where the 2nd output would always output True when set to boolean
+
+0.4.7
+- putch: Fixed issue where if the node was directly configured to a delay of 0 (regardless of units) in the dialog box, 
+then the node would actually delay 5 (whatever units). 
+- putch: Fixed issue where if the node was directly configured to a value with a decimal (for example 10.5) in the dialog box, then the node
+would actually truncate the fractional part (10.5 becomes 10). 

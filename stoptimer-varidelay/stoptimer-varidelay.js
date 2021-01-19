@@ -27,7 +27,7 @@ module.exports = function(RED) {
 
     this.units = n.units || "Second";
     this.durationType = n.durationType;
-    this.duration = parseInt(RED.util.evaluateNodeProperty(n.duration, this.durationType, this, null), 10) || 5;
+    this.duration = isNaN(Number(RED.util.evaluateNodeProperty(n.duration, this.durationType, this, null))) ? 5 : Number(RED.util.evaluateNodeProperty(n.duration, this.durationType, this, null));
     this.payloadval = n.payloadval || "0";
     this.payloadtype = n.payloadtype || "num";
     this.reporting = n.reporting || "None";
