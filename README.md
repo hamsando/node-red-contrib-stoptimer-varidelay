@@ -49,7 +49,7 @@ This can be problematic if you want to chain multiple stoptimers together. It is
 It is a legacy thing, it was part of the original stoptimer whose code I forked. Not sure what exactly the original intent was, but I'm sure there is some rationale. 
       
 **How does Stoptimer-Varidelay handle this?**
-'Ignore Timerpass' in the node config dialog. If enabled in a given stoptimer-varidelay node, it will ignore the presence of the <code>_timerpass</code> property on an incoming message and will process the incoming message as it does every other message.
+*Ignore Timerpass* in the node config dialog. If enabled in a given stoptimer-varidelay node, it will ignore the presence of the <code>_timerpass</code> property on an incoming message and will process the incoming message as it does every other message.
 
 By default, this option is not enabled in order to preserve compatibility with any existing flows. Note that you may need to refresh the web ui after updating the node in order to see the new "ignore timerpass" option.
 
@@ -136,3 +136,5 @@ would actually truncate the fractional part (10.5 becomes 10).
 - putch: Added an optional feature  to ignore incoming _timerpass=true flags. See README or Node help for details.
 - putch: Added a node status (expired) for when the timer expires.
 
+0.5.1
+- putch: Corrected documentation omission.
