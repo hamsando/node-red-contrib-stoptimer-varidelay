@@ -29,7 +29,29 @@ This option is **DISABLED** by default. If you ENABLE it (check the checkbox) th
 * If you had a 10 minute stoptimer running, with 6 minutes elapsed (ie: 4 minutes left) and you hit Deploy, normally the stoptimer would no longer be running, but if you have this feature enabled, the timer will continue running from the 6 minute mark (ie: counting down 4 more minutes and then trigger).
 * If you had a 10 minute stoptimer running, with 6 minutes elapsed (ie: 4 minutes left) and you *stopped* Node-RED for 2 minutes and then restarted it, normally the stoptimer would no longer be running, but if you have this feature enabled, the timer will continue running from the 8 minute mark (6 minutes from the original run + 2 minutes of Node-RED downtime) -- counting down 2 more minutes and then trigger.
 * **Special Case** If on restart or re-Deploy, there is less than 3 seconds remaining on the stoptimer (or if the stoptimer should have elapsed already) then the stoptimer is set to a random amount between 3 and 8 seconds. This helps to ensure than anything else that needs to initialize before the stoptimer triggers, has a chance to initialize, it also helps so that if you happen to have a lot of timers, they don't all trigger at once and flood unsuspecting nodes/devices.		
+
 This persistence is **not** related to "Persistent Context" (the contextStorage option in 'settings.js'). When the "Resume timer" option is enabled in the node, the node will store timer related information in a 'stvd-timers' subdirectory of '*userDir* (where *userDir* is defined in 'settings.js'). If *userDir* is not explicitly defined, it defaults to a directory called '.node-red' in your home user directory. The files in this directory will be created/destroyed as needed by the node.
+
+## _timerpass ##
+**What is *_timerpass*?**
+      
+*_timerpass* is a property added to messages exiting the 1st/top and 2nd/middle outputs of stoptimer.
+*_timerpass* is set to **true** when the timer expires. 
+
+**What does *_timerpass* do?**
+If stoptimer has at any point been stopped using message.payload=stop (or STOP) AND 
+If stoptimer has not received a message with _timerpass not set since that time THEN
+any incoming message that has the _timerpass=true property will die within stoptimer with no output.
+
+This can be problematic if you want to chain multiple stoptimers together. It is not insurmountable, but it can be irritating.
+
+**Why does this behavior exist?**
+It is a legacy thing, it was part of the original stoptimer whose code I forked. Not sure what exactly the original intent was, but I'm sure there is some rationale. 
+      
+**How does Stoptimer-Varidelay handle this?**
+'Ignore Timerpass' in the node config dialog. If enabled in a given stoptimer-varidelay node, it will ignore the presence of the <code>_timerpass</code> property on an incoming message and will process the incoming message as it does every other message.
+
+By default, this option is not enabled in order to preserve compatibility with any existing flows. Note that you may need to refresh the web ui after updating the node in order to see the new "ignore timerpass" option.
 
 ## Release Notes ##
 0.0.1 
