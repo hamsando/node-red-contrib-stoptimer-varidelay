@@ -22,8 +22,13 @@ module.exports = function(RED) {
     RED.nodes.createNode(this, n);
     let fs = require('fs');
     let path = require('path');
+    let nodefile = path.join(RED.settings.userDir, "stvd-timers",n.id.toString());
     require('./cycle.js');
-    const stvdtimersFile = path.join(RED.settings.userDir, "stvd-timers",n.id.toString());
+    
+    if (n._alias != null) {
+      nodefile = path.join(RED.settings.userDir, "stvd-timers", n.z.toString() + "-" + n._alias.toString());
+    } 
+    const stvdtimersFile = nodefile;    
 
     this.units = n.units || "Second";
     this.durationType = n.durationType;
@@ -32,6 +37,7 @@ module.exports = function(RED) {
     this.payloadtype = n.payloadtype || "num";
     this.reporting = n.reporting || "None";
     this.persist = n.persist || false;
+    this.ignoretimerpass = n.ignoretimerpass || false;
 
     if (this.duration <= 0) {
         this.duration = 0;
@@ -63,6 +69,7 @@ module.exports = function(RED) {
     }
 
     let node = this;
+
     let timeout = null;
     let miniTimeout = null; 
     let countdown = null;
@@ -126,8 +133,9 @@ module.exports = function(RED) {
     function handleInputEvent(msg) {    
       node.status({});
       let delayUnits = node.units;
-      reporting = node.reporting;     
-      if(stopped === false || msg._timerpass !== true) {
+      reporting = node.reporting;    
+
+      if(stopped === false || msg._timerpass !== true || node.ignoretimerpass === true) {
         stopped = false;
         clearTimeout(timeout);
         clearTimeout(miniTimeout);
@@ -243,13 +251,16 @@ module.exports = function(RED) {
             }
           }
         }
-      }      
+      } else {
+        node.status({fill: "red", shape: "ring", text: "stopped"});
+      }    
     }
 
     function timerElapsed(msg) {
       if (actualDelayRemaining == 0) {
         clearInterval(countdown);
-        node.status({});
+        //node.status({});
+        node.status({fill: "blue", shape: "square", text: "expired"});
         
         if(stopped === false) {
           let msg2 = RED.util.cloneMessage(msg);          

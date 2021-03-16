@@ -107,3 +107,10 @@ This persistence is **not** related to "Persistent Context" (the contextStorage 
 then the node would actually delay 5 (whatever units). 
 - putch: Fixed issue where if the node was directly configured to a value with a decimal (for example 10.5) in the dialog box, then the node
 would actually truncate the fractional part (10.5 becomes 10). 
+
+0.5.0
+- putch: Fixed an issue where if the node was in a subflow, it was exceedingly unlikely that it would successfully resume after restart/redeploy.
+- putch: Fixed an issue where if the node status was "stopped" and a new message came in with _timerpass=true, the node status was cleared (but the node was still in "stopped" state so it could be unclear why it may ignore a new message. Now the status "stopped" remains.
+- putch: Added an optional feature  to ignore incoming _timerpass=true flags. See README or Node help for details.
+- putch: Added a node status (expired) for when the timer expires.
+

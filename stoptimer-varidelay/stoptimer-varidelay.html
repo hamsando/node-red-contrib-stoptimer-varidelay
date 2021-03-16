@@ -27,7 +27,8 @@
             payloadval: {value:"0"},
             name: {value:""},
             reporting: {value:"none"},
-			persist: {value:false} 
+            persist: {value:false},
+            ignoretimerpass: {value:false} 
         },
         inputs:1,
         outputs:3,
@@ -94,9 +95,14 @@
     </div>
     <div class="form-row">
 		<i class="fa fa-floppy-o"></i>
-		<label style="width:auto" for="node-input-persist"> Resume timer on deploy/restart</label>
-		<input type="checkbox" id="node-input-persist" style="display:inline-block; width:auto; vertical-align:top;">	
+		  <label style="width:auto" for="node-input-persist"> Resume timer on deploy/restart</label>
+		  <input type="checkbox" id="node-input-persist" style="display:inline-block; width:auto; vertical-align:top;">	
     </div>	
+    <div class="form-row">
+      <i class="fa fa-recycle"></i>
+        <label style="width:auto" for="node-input-ignoretimerpass"> Ignore incoming _timerpass</label>
+        <input type="checkbox" id="node-input-ignoretimerpass" style="display:inline-block; width:auto; vertical-align:top;">	
+    </div>	  
     <div class="form-row">
 		<i class="fa fa-envelope"></i>
         <label for="node-input-payloadtype"> 2nd Payload</label>
@@ -134,7 +140,7 @@
       If the input contains <code>msg.units</code>, with a value of "Milliseconds", "Seconds", "Minutes" or "Hours" then that will over-ride what is defaulted in the node. In the absense of a <code>msg.units</code>, or an unknown string in <code>msg.units</code> the units configured within the node will be used. In the case of an unknown string, a warning message will appear in the Debug logs.
     </p>
     <p><b>Special Note on Milliseconds</b>
-      While you can set Milliseconds, I would not rely on the accuracy for anything critical. For the purposes of the node status and output 3, except in the case where Reporting is set to None, the milliseconds are not displayed or provided on the 3rd output as it wouldn't make sense based on the available reporting rates.
+      While you can set Milliseconds, I would not rely on the accuracy for anything critical. For the purposes of the node status and output 3, except in the case where Reporting is set to None, the milliseconds are not displayed or provided on the 3rd output as it wouldn't make sense based on the available reporting rates.      
 	</p>
 	<p><b>Resume timer on deploy/restart</b>
 	  This option is <b>DISABLED</b> by default. If you <i>ENABLE</i> it (check the checkbox) then if the stoptimer is running and you re-Deploy the flow, or restart Node-RED, then the timer will automatically restart itself where it should be. What does that mean? A couple of examples will help here. 
@@ -143,5 +149,24 @@
 	    <li>If you had a 10 minute stoptimer running, with 6 minutes elapsed (ie: 4 minutes left) and you <i>stopped</i> Node-RED for 2 minutes and then restarted it, normally the stoptimer would no longer be running, but if you have this feature enabled, the timer will continue running from the 8 minute mark (6 minutes from the original run + 2 minutes of Node-RED downtime) -- counting down 2 more minutes and then trigger.</li>
 		<li><b>Special Case</b> If on restart or re-Deploy, there is less than 3 seconds remaining on the stoptimer (or if the stoptimer should have elapsed already) then the stoptimer is set to a random amount between 3 and 8 seconds. This helps to ensure than anything else that needs to initialize before the stoptimer triggers, has a chance to initialize, it also helps so that if you happen to have a lot of timers, they don't all trigger at once and flood unsuspecting nodes/devices.</li>		
 	  </ul>
-	  This persistence is <b>not</b> related to "Persistent Context" (the contextStorage option in <code>settings.js</code>). When the "Resume timer" option is enabled in the node, the node will store timer related information in a <code>stvd-timers</code> subdirectory of <i>userDir</i> (where <i>userDir</i> is defined in <code>settings.js</code>). If <i>userDir</i> is not explicitly defined, it defaults to a directory called <code>.node-red</code> in your home user directory. The files in this directory will be created/destroyed as needed by the node.
+    This persistence is <b>not</b> related to "Persistent Context" (the contextStorage option in <code>settings.js</code>). When the "Resume timer" option is enabled in the node, the node will store timer related information in a <code>stvd-timers</code> subdirectory of <i>userDir</i> (where <i>userDir</i> is defined in <code>settings.js</code>). If <i>userDir</i> is not explicitly defined, it defaults to a directory called <code>.node-red</code> in your home user directory. The files in this directory will be created/destroyed as needed by the node.
+  </p>
+    <p><b>What is <code>_timerpass</code></b>
+      <code>_timerpass</code> is a property added to messages exiting the 1st/top and 2nd/middle outputs of stoptimer.
+      <code>_timerpass</code> is set to <code>true</code> when the timer expires. 
+      <br>
+      <b>What does <code>_timerpass</code> do?</b>
+      If stoptimer has at any point been stopped using message.payload=stop (or STOP) AND <br>
+      If stoptimer has not received a message with _timerpass not set since that time THEN <br>
+      any incoming message that has the _timerpass=true property will die within stoptimer with no output.
+      <br><br>
+      This can be problematic if you want to chain multiple stoptimers together. It is not insurmountable, but it can be irritating.
+
+      <b>Why does this behavior exist?</b>
+      It is a legacy thing, it was part of the original stoptimer whose code I forked. Not sure what exactly the original intent was, but I'm sure there is some rationale. 
+      
+      <b>How does Stoptimer-Varidelay handle this?</b>
+      'Ignore Timerpass' in the node config dialog. If enabled in a given stoptimer-varidelay node, it will ignore the presence of the <code>_timerpass</code> property on an incoming message and will process the incoming message as it does every other message.
+      By default, this option is not enabled in order to preserve compatibility with any existing flows. Note that you may need to refresh the web ui after updating the node in order to see the new "ignore timerpass" option.
+      </p>
 </script>
