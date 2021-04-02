@@ -22,10 +22,17 @@ module.exports = function(RED) {
     RED.nodes.createNode(this, n);
     let fs = require('fs');
     let path = require('path');
+    let nodefile = n.id.toString();
+    let nodepath = "";
     require('./cycle.js');
     
-    let nodePath = n._flow.path.replace(/\//g, "-");
-    const stvdtimersFile = path.join(RED.settings.userDir, "stvd-timers",nodePath);
+    if (n._alias != null) {
+      nodepath = n._flow.path.replace(/\//g, "-") + "-";
+      nodefile = n._alias;
+    }
+
+    const stvdtimersFile = path.join(RED.settings.userDir, "stvd-timers", nodepath +  nodefile);
+
 
     this.units = n.units || "Second";
     this.durationType = n.durationType;

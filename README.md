@@ -138,3 +138,6 @@ would actually truncate the fractional part (10.5 becomes 10).
 
 0.5.1
 - putch: Corrected documentation omission.
+
+0.5.2
+- putch: Fixed issue where if the node was in a subflow of a subflow (ie: more than just in a flow or single level deep subflow) the restart/redeploy functionality would not work. This fix breaks the solution in 0.5.0. Upon inital restart after upgrading to 0.5.2, nodes within subflows won't restart if there were in progress (and you will have orphan node state files). Solution as suggested by tobi-bo.
