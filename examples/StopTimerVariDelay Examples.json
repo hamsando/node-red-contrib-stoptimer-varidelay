@@ -1,0 +1,406 @@
+[
+    {
+        "id": "797eaa96c9cdb7b2",
+        "type": "stoptimer-varidelay",
+        "z": "90dddd2585facca0",
+        "duration": "5",
+        "durationType": "num",
+        "units": "Second",
+        "payloadtype": "str",
+        "payloadval": "DONE",
+        "name": "",
+        "reporting": "every_second",
+        "reportingformat": "human",
+        "persist": false,
+        "ignoretimerpass": false,
+        "x": 360,
+        "y": 160,
+        "wires": [
+            [
+                "c928952d875a224a"
+            ],
+            [
+                "ec3d840d9223b48b"
+            ],
+            [
+                "490703c2780c41ce"
+            ]
+        ]
+    },
+    {
+        "id": "31c7db01847a87ae",
+        "type": "inject",
+        "z": "90dddd2585facca0",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "BASIC",
+        "payloadType": "str",
+        "x": 110,
+        "y": 160,
+        "wires": [
+            [
+                "797eaa96c9cdb7b2"
+            ]
+        ]
+    },
+    {
+        "id": "c928952d875a224a",
+        "type": "debug",
+        "z": "90dddd2585facca0",
+        "name": "Main",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 650,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "ec3d840d9223b48b",
+        "type": "debug",
+        "z": "90dddd2585facca0",
+        "name": "ALT",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 650,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "490703c2780c41ce",
+        "type": "debug",
+        "z": "90dddd2585facca0",
+        "name": "Countdown",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 670,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "3386240e756f3553",
+        "type": "comment",
+        "z": "90dddd2585facca0",
+        "name": "Basic Example",
+        "info": "This is a basic example. \n\nThe timer is preconfigured for 5 seconds.\n\n-The Inject node will send a BASIC message.\n-The timer status will countdown the 5 seconds.\n-The \"Main\" debug node will print the message from Inject in the debug tab when the countdown completes.\n-The \"ALT\" debug node will print DONE in the debug tab when the countdown completes.\n-The \"Countdown\" debug node will print the countdown in the debug tab in the hh:mm:ss format.\n\nNote that when the timer complete it indicates \"expired\"\n\n",
+        "x": 120,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "9f0aa6082fd8d826",
+        "type": "comment",
+        "z": "90dddd2585facca0",
+        "name": "Dynamic Example",
+        "info": "This is a Dynamic example. \n\nThe timer is preconfigured for 5 seconds.\n\n-The Inject node will send a DYNAMIC message AND re-configure the timer for 1 minute*.\n-The timer status will countdown the 60 seconds.\n-The \"Main\" debug node will print the message from Inject in the debug tab when the countdown completes.\n-The \"ALT\" debug node will print DONE in the debug tab when the countdown completes.\n-The \"Countdown\" debug node will print the countdown in the debug tab as pure seconds.\n\n*note that the timer node itself will still be labelled as \"5 Second Timer\" as it is not possible to dynamically adjust that.\n\nNote that when the timer complete it indicates \"expired\"\n",
+        "x": 130,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "833a54bdac3f1963",
+        "type": "stoptimer-varidelay",
+        "z": "90dddd2585facca0",
+        "duration": "5",
+        "durationType": "num",
+        "units": "Second",
+        "payloadtype": "str",
+        "payloadval": "DONE",
+        "name": "",
+        "reporting": "every_second",
+        "reportingformat": "seconds",
+        "persist": false,
+        "ignoretimerpass": false,
+        "x": 340,
+        "y": 380,
+        "wires": [
+            [
+                "26e9017cebb6cdcf"
+            ],
+            [
+                "9d3c6f0ab81d978f"
+            ],
+            [
+                "b96e59108a65bfc1"
+            ]
+        ]
+    },
+    {
+        "id": "354f969b37e62508",
+        "type": "inject",
+        "z": "90dddd2585facca0",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "delay",
+                "v": "1",
+                "vt": "str"
+            },
+            {
+                "p": "units",
+                "v": "minutes",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "DYNAMIC",
+        "payloadType": "str",
+        "x": 120,
+        "y": 380,
+        "wires": [
+            [
+                "833a54bdac3f1963"
+            ]
+        ]
+    },
+    {
+        "id": "26e9017cebb6cdcf",
+        "type": "debug",
+        "z": "90dddd2585facca0",
+        "name": "Main",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 630,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "9d3c6f0ab81d978f",
+        "type": "debug",
+        "z": "90dddd2585facca0",
+        "name": "ALT",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 630,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "b96e59108a65bfc1",
+        "type": "debug",
+        "z": "90dddd2585facca0",
+        "name": "Countdown",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 650,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "7aaa170e8b399531",
+        "type": "comment",
+        "z": "90dddd2585facca0",
+        "name": "Stopping a Timer",
+        "info": "This is an example of Stopping the timer. \n\nThe TIMER-A is preconfigured for 30 seconds.\n\n-The TEST Inject node will send a TEST message to TIMER-A and TIMER-B.\n-TIMER-A status will countdown the 30 seconds.\n-TIMER-B is configured for 5 seconds and to not show any countdown.\n-When TIMER-B expires, it goes to a change node which sets the payload to \"stop\" and that goes to TIMER-A.\n-TIMER-A immediately stops the countdown.\n-The \"Main\" debug node will never get called.\n-The \"ALT\" debug node will print \"stopped\" after 5 seconds.\n-The \"Countdown\" debug node will print the countdown in the debug tab as hh:mm:ss but will then print \"stopped\" after 5 seconds.\n\n\n\n",
+        "x": 120,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "b46321ac8c26fa9e",
+        "type": "stoptimer-varidelay",
+        "z": "90dddd2585facca0",
+        "duration": "30",
+        "durationType": "num",
+        "units": "Second",
+        "payloadtype": "str",
+        "payloadval": "DONE",
+        "name": "TIMER-A",
+        "reporting": "every_second",
+        "reportingformat": "human",
+        "persist": false,
+        "ignoretimerpass": false,
+        "x": 520,
+        "y": 580,
+        "wires": [
+            [
+                "b985d5341246bbd7"
+            ],
+            [
+                "605ef12ec580ab36"
+            ],
+            [
+                "5f67fe9e40f9b0ea"
+            ]
+        ]
+    },
+    {
+        "id": "6e2cc7b6cbf20576",
+        "type": "inject",
+        "z": "90dddd2585facca0",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "TEST",
+        "payloadType": "str",
+        "x": 110,
+        "y": 580,
+        "wires": [
+            [
+                "b46321ac8c26fa9e",
+                "870654947ec5b53c"
+            ]
+        ]
+    },
+    {
+        "id": "b985d5341246bbd7",
+        "type": "debug",
+        "z": "90dddd2585facca0",
+        "name": "Main",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 830,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "605ef12ec580ab36",
+        "type": "debug",
+        "z": "90dddd2585facca0",
+        "name": "ALT",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 830,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "5f67fe9e40f9b0ea",
+        "type": "debug",
+        "z": "90dddd2585facca0",
+        "name": "Countdown",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 850,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "64154dfb1b036d21",
+        "type": "change",
+        "z": "90dddd2585facca0",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "stop",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 380,
+        "y": 660,
+        "wires": [
+            [
+                "b46321ac8c26fa9e"
+            ]
+        ]
+    },
+    {
+        "id": "870654947ec5b53c",
+        "type": "stoptimer-varidelay",
+        "z": "90dddd2585facca0",
+        "duration": "5",
+        "durationType": "num",
+        "units": "Second",
+        "payloadtype": "num",
+        "payloadval": "0",
+        "name": "TIMER-B",
+        "reporting": "none",
+        "reportingformat": "human",
+        "persist": false,
+        "ignoretimerpass": false,
+        "x": 160,
+        "y": 680,
+        "wires": [
+            [
+                "64154dfb1b036d21"
+            ],
+            [],
+            []
+        ]
+    }
+]

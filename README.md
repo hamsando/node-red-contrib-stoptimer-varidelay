@@ -2,8 +2,9 @@
 
 
 ## General usage ##
-Sends the msg through the first output after the set timer duration. If a new msg is received before the timer has ended, it will replace the existing msg and the timer will be restarted, unless the new msg has a payload of 'stop' or 'STOP', in which case it will stop the timer. The second output allows you to send an additional payload of a number, string or boolean. If the timer is stopped, the second and third output will automatically send a payload of 'stopped'. The third output will send the time remaining, in HH:MM:SS format as time ticks away. The status below the node as well as the third output can be configured to update:
+Sends the received msg through the first output after the set timer duration. If a new msg is received before the timer has ended, it will replace the existing msg and the timer will be restarted, unless the new msg has a payload of 'stop' or 'STOP', in which case it will stop the timer. The second output allows you to send an additional payload of a number, string or boolean when the timer completes. If the timer is stopped, the second and third output will automatically send a payload of 'stopped'. The third output will send the time remaining as time ticks away. 
 
+The status below the node as well as the third output can be configured to update at a frequency of:
 * Never(default)
 * Every Second
 * Every Minute, Last minute by seconds
@@ -12,7 +13,7 @@ The last option works as follows:
 * While there is more than 1 minute remaining, the timer will decrement every minute. At the 1 minute point, it will switch to reporting every second.
 * The exception to this rule is if your duration is not a minute increment. In that case, the first update will be for the partial minute, after which it will operate as noted above. (for example: 2.5 minutes will decrement to 2 minutes, then 1 minute, then every second down to zero)
 
-This is like the built in delay function of node-red, but with the ability to not only restart the timer, but to stop it as well.
+The format of the 3rd output reporting (and status) are defined by the "Reporting Format" option. The default is hh:mm:ss (string), but it can be configured to present that as the total number of reamining seconds or minutes or hours (number). 
 
 ## Overriding the node via incoming messages ##
 If the input contains msg.delay, then the delay will be 'msg.delay' units of time, where the units are whatever the units are defaulted to in the node iteself. In the absense of a 'msg.delay', or a value in 'msg.delay' that can not be converted to an int, the value configured within the node will be used. If the value of 'msg.delay' is less than 0, then 0 is used.
@@ -141,3 +142,8 @@ would actually truncate the fractional part (10.5 becomes 10).
 
 0.5.2
 - putch: Fixed issue where if the node was in a subflow of a subflow (ie: more than just in a flow or single level deep subflow) the restart/redeploy functionality would not work. This fix breaks the solution in 0.5.0. Upon inital restart after upgrading to 0.5.2, nodes within subflows won't restart if there were in progress (and you will have orphan node state files). Solution as suggested by tobi-bo.
+
+0.5.3
+- putch: Added a drop-down to indicate what format you want the countdown (3rd output and node status) to be in. Default is HH:MM:SS.
+- putch: Added some example flows.
+

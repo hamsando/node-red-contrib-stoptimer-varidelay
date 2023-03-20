@@ -39,13 +39,15 @@ module.exports = function(RED) {
     this.duration = isNaN(Number(RED.util.evaluateNodeProperty(n.duration, this.durationType, this, null))) ? 5 : Number(RED.util.evaluateNodeProperty(n.duration, this.durationType, this, null));
     this.payloadval = n.payloadval || "0";
     this.payloadtype = n.payloadtype || "num";
-    this.reporting = n.reporting || "None";
+    this.reporting = n.reporting || "none";
+    this.reportingformat = n.reportingformat || "human";
     this.persist = n.persist || false;
     this.ignoretimerpass = n.ignoretimerpass || false;
 
     if (this.duration <= 0) {
         this.duration = 0;
     } else {
+
       if (this.units == "Second") {
           this.duration = this.duration * 1000;
       }
@@ -59,12 +61,12 @@ module.exports = function(RED) {
 
     if ((this.payloadtype === "num") && (!isNaN(this.payloadval))) {
       this.payloadval = Number(this.payloadval);
-    } else if (this.payloadval === 'true' || this.payloadval === 'false') {      
+    } else if (this.payloadval === 'true' || this.payloadval === 'false') {
       let bValue = false;
       if (this.payloadval === 'true') {
         bValue = true;
-      } 
-      this.payloadval = bValue;      
+      }
+      this.payloadval = bValue;
     } else if (this.payloadval == "null") {
       this.payloadtype = 'null';
       this.payloadval = null;
@@ -80,8 +82,9 @@ module.exports = function(RED) {
     let stopped = false;
     let delayRemainingDisplay = 0;
     let delayFactor = 1000;
-    let reporting = "none";
-    
+    let reporting = this.reporting;
+    let reportingformat = this.reportingformat;
+
     const maxTimeout = 2147483647; //max duration of setTimeout
     let actualDelayInUse = 0;
     let actualDelayRemaining = 0;
@@ -94,6 +97,12 @@ module.exports = function(RED) {
           let targetMS = (new Date(savedState.time.toString())).getTime();
           let nowMS = (new Date).getTime();
           this.reporting = savedState.reporting.toString();
+          if (typeof savedState.reportingformat !== 'undefined') {
+            this.reportingformat = savedState.reportingformat.toString();
+          } else {
+	    this.reportingformat = "human";
+	  }
+
           if ((targetMS-nowMS) <= 3000) {
             targetMS = (Math.floor((Math.random() * 5) + 3)*1000);
           } else {
@@ -184,7 +193,7 @@ module.exports = function(RED) {
             delayRemainingDisplay = node.duration;
           }
           writeState(msg);
-          actualDelayRemaining = delayRemainingDisplay;        
+          actualDelayRemaining = delayRemainingDisplay;
           if (actualDelayRemaining > maxTimeout) {
             actualDelayInUse = maxTimeout;
             actualDelayRemaining = actualDelayRemaining - maxTimeout;
@@ -194,11 +203,12 @@ module.exports = function(RED) {
           }
           timeout = setTimeout(timerElapsed,actualDelayInUse,msg);
           let msg3 = "";
+
           if (reporting == "none") {
-            msg3 = {payload: displayTime(delayRemainingDisplay)};
+            msg3 = {payload: displayTime(delayRemainingDisplay, reportingformat)};
             node.status({fill: "green", shape: "dot", text: msg3.payload});
           } else {
-            msg3 = {payload: displayTime(delayRemainingDisplay)};
+            msg3 = {payload: displayTime(delayRemainingDisplay, reportingformat)};
             node.status({fill: "green", shape: "dot", text: msg3.payload});
             node.send([null, null, msg3]);
             //report every minute, but during the last minute, every second
@@ -208,7 +218,7 @@ module.exports = function(RED) {
               miniTimeout = setTimeout(function() {
                 if ((delayRemainingDisplay % 60000) != 0) {
                   delayRemainingDisplay = delayRemainingDisplay - (delayRemainingDisplay % 60000);
-                  let msg3 = {payload: displayTime(delayRemainingDisplay)};
+                  let msg3 = {payload: displayTime(delayRemainingDisplay, reportingformat)};
                   node.status({fill: "green", shape: "dot", text: msg3.payload});
                   node.send([null, null, msg3]);
                 }
@@ -216,7 +226,7 @@ module.exports = function(RED) {
                 if (delayRemainingDisplay <= 60000) {
                   countdown = setInterval(function() {
                     delayRemainingDisplay = delayRemainingDisplay - 1000;
-                    let msg3 = {payload: displayTime(delayRemainingDisplay)};
+                    let msg3 = {payload: displayTime(delayRemainingDisplay, reportingformat)};
                     node.status({fill: "green", shape: "dot", text: msg3.payload});
                     node.send([null, null, msg3]);
                   }, 1000);
@@ -224,7 +234,7 @@ module.exports = function(RED) {
                   countdown = setInterval(function() {
                     if (delayRemainingDisplay > 60000) {
                       delayRemainingDisplay = delayRemainingDisplay - 60000;
-                      let msg3 = {payload: displayTime(delayRemainingDisplay)};
+                      let msg3 = {payload: displayTime(delayRemainingDisplay, reportingformat)};
                       node.status({fill: "green", shape: "dot", text: msg3.payload});
                       node.send([null, null, msg3]);
                     }
@@ -235,7 +245,7 @@ module.exports = function(RED) {
                       countdown = null;
                       countdown = setInterval(function() {
                         delayRemainingDisplay = delayRemainingDisplay - 1000;
-                        let msg3 = {payload: displayTime(delayRemainingDisplay)};
+                        let msg3 = {payload: displayTime(delayRemainingDisplay, reportingformat)};
                         node.status({fill: "green", shape: "dot", text: msg3.payload});
                         node.send([null, null, msg3]);
                       }, 1000);
@@ -248,7 +258,7 @@ module.exports = function(RED) {
               //Update every second, always
               countdown = setInterval(function() {
                 delayRemainingDisplay = delayRemainingDisplay - 1000;
-                let msg3 = {payload: displayTime(delayRemainingDisplay)};
+                let msg3 = {payload: displayTime(delayRemainingDisplay, reportingformat)};
                 node.status({fill: "green", shape: "dot", text: msg3.payload});
                 node.send([null, null, msg3]);
               }, 1000);
@@ -268,7 +278,8 @@ module.exports = function(RED) {
         
         if(stopped === false) {
           let msg2 = RED.util.cloneMessage(msg);          
-          let msg3 = { payload: "00:00:00" };
+          //let msg3 = { payload: "00:00:00" };
+	  let msg3 = { payload: displayTime(0,reportingformat) };
           msg2.payload = node.payloadval;
           if (reporting == "none") {
             msg3 = null;
@@ -291,16 +302,25 @@ module.exports = function(RED) {
       timeout = setTimeout(timerElapsed,actualDelayInUse,msg);
     }
 
-    function displayTime(delayToDisplay) {
+    function displayTime(delayToDisplay, reportingformat) {
       let timeToDisplay = "";
       let hours,minutes,seconds;
 
       delayToDisplay = delayToDisplay / 1000;
-      hours = String(Math.floor(delayToDisplay / 3600)).padStart(2,"0");
-      delayToDisplay %= 3600;
-      minutes = String(Math.floor(delayToDisplay / 60)).padStart(2,"0");
-      seconds = String(delayToDisplay % 60).padStart(2,"0");
-      timeToDisplay = hours+":"+minutes+":"+seconds;
+
+      if (reportingformat == "seconds") {
+        timeToDisplay = delayToDisplay;
+      } else if (reportingformat == "minutes") {
+         timeToDisplay = delayToDisplay/60;
+      } else if (reportingformat == "hours" ) {
+        timeToDisplay = delayToDisplay/3600;
+      } else {
+        hours = String(Math.floor(delayToDisplay / 3600)).padStart(2,"0");
+        delayToDisplay %= 3600;
+        minutes = String(Math.floor(delayToDisplay / 60)).padStart(2,"0");
+        seconds = String(delayToDisplay % 60).padStart(2,"0");
+        timeToDisplay = hours+":"+minutes+":"+seconds;
+      }
       return timeToDisplay;
     }
 
@@ -309,7 +329,7 @@ module.exports = function(RED) {
         try {
           if (!fs.existsSync(path.dirname(stvdtimersFile))) fs.mkdirSync(path.dirname(stvdtimersFile), { recursive: true });
           let target = (new Date((new Date().getTime() + delayRemainingDisplay))).toISOString();
-          fs.writeFileSync(stvdtimersFile, JSON.stringify(JSON.decycle({reporting: node.reporting, time: target, origmsg: msg})));          
+          fs.writeFileSync(stvdtimersFile, JSON.stringify(JSON.decycle({reporting: node.reporting, reportingformat: node.reportingformat, time: target, origmsg: msg})));          
         } catch (error) {
           node.error("Error writing persistent file for stoptimer-varidelay node " + node.id.toString() + "\n\n" + error.toString());
         }
